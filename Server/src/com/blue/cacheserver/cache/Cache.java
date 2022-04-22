@@ -12,6 +12,14 @@ public class Cache<K, V> {
         return map.remove(removeKey);
     }
 
+    public V put(K key, V value) {
+        return map.put(key, value);
+    }
+
+    public V get(K key) {
+        return map.get(key);
+    }
+
     private Cache() {
         // Singleton Pattern
     }

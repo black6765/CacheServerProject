@@ -10,14 +10,15 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public class PutTask implements Runnable {
+public class GetTask implements Runnable {
+
     SocketChannel clientSocketChannel;
     Cache<String, String> cache;
-    public PutTask(Cache<String, String> cache, SocketChannel socketChannel) {
+
+    public GetTask(Cache<String, String> cache, SocketChannel socketChannel) {
         this.cache = cache;
         this.clientSocketChannel = socketChannel;
     }
-
     @Override
     public void run() {
         try {
@@ -37,22 +38,11 @@ public class PutTask implements Runnable {
 
             buf.clear();
 
-            byteCount = clientSocketChannel.read(buf);
-            if (byteCount == -1) {
-                throw new IOException();
-            }
-            buf.flip();
-            String value = charset.decode(buf).toString();
-            clientSocketChannel.write(charset.encode("[Server] Success receive value: (" + value + ")"));
-            System.out.println(key);
-            System.out.println(value);
+            clientSocketChannel.write(charset.encode("[Server] Get operation return value: (" + cache.get(key) + ")"));
 
-            cache.put(key, value);
-            buf.clear();
-
-            System.out.println(Message.SERVER_PUT_MSG);
+            System.out.println(Message.SERVER_GET_MSG);
         } catch (Exception e) {
-            System.out.println(ErrorMessage.SERVER_PUT_FAILED_MSG);
+            System.out.println(ErrorMessage.SERVER_GET_FAILED_MSG);
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
