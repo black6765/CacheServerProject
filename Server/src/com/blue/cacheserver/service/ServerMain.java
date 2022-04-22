@@ -19,9 +19,4 @@ public class ServerMain {
         serverService.startServer();
 
     }
-
-    private void stopServer() {
-
-    }
-
 }

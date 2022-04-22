@@ -7,7 +7,7 @@ public class Cache<K, V> {
 
     private Map<K, V> map = new ConcurrentHashMap<>();
 
-    // Todo : eviction 메소드
+    // Todo : eviction 메소드 작성
     public V eviction(K removeKey) {
         return map.remove(removeKey);
     }
