@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
 
 public class StartClient {
 
@@ -44,7 +43,7 @@ public class StartClient {
                 String output = cmd + "\n" + key + "\n" + value;
                 socketChannel.write(charset.encode(output));
                 buf.clear();
-                System.out.println("\nSend to the server [ put(" + key + ", " + value + ") ]");
+                System.out.println("\nSend to the server [ put(" + key + ", " + value + ") ] operation");
 
                 socketChannel.read(buf);
                 buf.flip();
@@ -52,28 +51,6 @@ public class StartClient {
                 String input = StandardCharsets.UTF_8.decode(buf).toString();
                 System.out.println("\nServer return [" + input + "]");
 
-//                int byteCount;
-//                byteCount = socketChannel.read(buf);
-//
-//                if (byteCount == -1) {
-//                    throw new IOException();
-//                }
-//                buf.flip();
-//                System.out.println(charset.decode(buf));
-//                ;
-//
-//                // 서버로 value를 송신
-//                socketChannel.write(charset.encode(value));
-//
-//                buf.clear();
-//                byteCount = socketChannel.read(buf);
-//
-//                if (byteCount == -1) {
-//                    throw new IOException();
-//                }
-//                buf.flip();
-//                System.out.println(charset.decode(buf));
-//                ;
             } else if ("2".equals(cmd)) {
 
                 System.out.println("\n[Get operation]\n");
@@ -84,7 +61,7 @@ public class StartClient {
                 String output = cmd + "\n" + key;
                 socketChannel.write(charset.encode(output));
                 buf.clear();
-                System.out.println("\nSend to the server [ get(" + key + ") ]");
+                System.out.println("\nSend to the server [ get(" + key + ") ] operation");
 
                 socketChannel.read(buf);
                 buf.flip();
@@ -92,37 +69,24 @@ public class StartClient {
                 String input = StandardCharsets.UTF_8.decode(buf).toString();
                 System.out.println("\nServer return [" + input + "]");
 
+            } else if ("3".equals(cmd)) {
+                System.out.println("\n[Remove operation]\n");
+                System.out.print("Enter the key: ");
+                String key = br.readLine();
 
-//                System.out.println("\n[Get operation]\n");
-//                System.out.print("Enter the key: ");
-//                String key = br.readLine();
-//
-//                // 서버로 key를 송신
-//                socketChannel.write(charset.encode(key));
-//
-//                int byteCount;
-//                byteCount = socketChannel.read(buf);
-//
-//                if (byteCount == -1) {
-//                    throw new IOException();
-//                }
-//                buf.flip();
-//                System.out.println(charset.decode(buf));
-//
-//                buf.clear();
-//                byteCount = socketChannel.read(buf);
-//
-//                if (byteCount == -1) {
-//                    throw new IOException();
-//                }
-//                buf.flip();
-//                System.out.println(charset.decode(buf));
+                // 서버로 입력 정보 송신
+                String output = cmd + "\n" + key;
+                socketChannel.write(charset.encode(output));
+                buf.clear();
+                System.out.println("\nSend to the server [ remove(" + key + ") ] operation");
+
+                socketChannel.read(buf);
+                buf.flip();
+
+                String input = StandardCharsets.UTF_8.decode(buf).toString();
+                System.out.println("\nServer return [" + input + "]");
+
             }
-
-
-
-
-
         } catch (IOException e) {
 
         }
