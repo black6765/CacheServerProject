@@ -77,7 +77,6 @@ public class ServerService {
             if (selector != null && selector.isOpen()) {
                 selector.close();
             }
-
             System.out.println(SuccessMessage.SERVER_STOP_MSG);
         } catch (Exception e) {
             System.out.println(ErrorMessage.SERVER_STOP_FAILED_MSG);
@@ -118,7 +117,7 @@ public class ServerService {
 
         try {
             SocketChannel socketChannel = serverSocketChannel.accept();
-            System.out.println("[Client Info: " + socketChannel.getRemoteAddress() + " # " + Thread.currentThread().getName() + "]");
+            System.out.println("\n[Client Info: " + socketChannel.getRemoteAddress() + " # " + Thread.currentThread().getName() + "]");
             if (socketChannel != null) {
                 // 정상적으로 소켓 채널이 설정되었다면, non-blocking 모드로 하여 셀렉터에 OP_READ로 등록시킴
                 socketChannel.configureBlocking(false);

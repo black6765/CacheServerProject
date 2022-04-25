@@ -25,7 +25,7 @@ public class Cache<K, V> {
     }
 
     private Cache() {
-        // Singleton Pattern
+        // Forbidden for Singleton Pattern
     }
 
     private static class LazyHolder {
