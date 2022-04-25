@@ -10,20 +10,21 @@ import com.blue.cacheserver.task.PutTask;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServerService {
 
     private Selector selector;
+
+    private final Charset charset = StandardCharsets.UTF_8;
 
     private ServerSocketChannel serverSocketChannel;
     private Cache<String, String> cache;
@@ -47,7 +48,7 @@ public class ServerService {
                             continue;
                         }
 
-                        System.out.println("클라이언트 연결 신청");
+//                        System.out.println("클라이언트 연결 신청");
 
                         Set<SelectionKey> selectionKeySet = selector.selectedKeys();
                         Iterator<SelectionKey> iterator = selectionKeySet.iterator();
@@ -57,38 +58,64 @@ public class ServerService {
 
                             // Todo : 각 경우 메소드로 만들기(셀렉터는 accept 요청만 받으므로 필요 없을 수도)
                             if (selectionKey.isAcceptable()) {
-                                ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
-                                SocketChannel clientSocketChannel = serverSocketChannel.accept();
+                                System.out.println("Accept");
+                                accept(selectionKey);
+                            } else if (selectionKey.isReadable()) {
+                                try {
+                                    System.out.println("Read");
+                                    SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+                                    socketChannel.configureBlocking(false);
+                                    ByteBuffer buf = ByteBuffer.allocate(512);
 
-                                System.out.println("클라이언트 연결 완료");
-                                Client client = new Client(clientSocketChannel);
-                                clients.add(client);
 
-                                System.out.println(client);
-                                ByteBuffer buf = ByteBuffer.allocate(512);
+                                    int byteCount = socketChannel.read(buf);
+                                    if (byteCount == -1) {
+                                        System.out.println("클라이언트 연결 종료");
+                                    }
+                                    buf.flip();
+                                    String[] input = StandardCharsets.UTF_8.decode(buf).toString().split("\n");
 
-                                int byteCount = clientSocketChannel.read(buf);
-                                if (byteCount == -1) {
-                                    throw new IOException();
+                                    if ("1".equals(input[0])) {
+
+                                        String str = (String) cache.put(input[1], input[2]);
+                                        if (str == null) {
+                                            socketChannel.write(charset.encode("null"));
+                                        } else {
+                                            socketChannel.write(charset.encode(str));
+                                        }
+
+                                        System.out.println("Put success.");
+                                        System.out.println("key = [" + input[1] + "]");
+                                        System.out.println("value = [" + input[2] + "]");
+
+                                    } else if ("2".equals(input[0])) {
+                                        String str = (String) cache.get(input[1]);
+                                        if (str == null) {
+                                            socketChannel.write(charset.encode("null"));
+                                        } else {
+                                            socketChannel.write(charset.encode(str));
+                                        }
+
+                                        System.out.println("Get success.");
+                                        System.out.println("key = [" + input[1] + "]");
+                                    }
+                                    selectionKey.cancel();
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
-
-                                buf.flip();
-                                String cmd = StandardCharsets.UTF_8.decode(buf).toString();
-
-                                if ("1".equals(cmd)) {
-                                    Runnable putTask = new PutTask(cache, clientSocketChannel);
-
-                                    // 현재 코드 상태에서 각 작업이 다른 스레드로 처리되고 있는 것을 확인 가능
-                                    executorService.submit(putTask);
-                                } else if ("2".equals(cmd)) {
-                                    Runnable getTask = new GetTask(cache, clientSocketChannel);
-                                    executorService.submit(getTask);
-                                }
-                                System.out.println(Message.SERVER_SUBMIT_MSG);
-                                buf.clear();
-                            } else {
-                                System.out.println("원하는 것이 아님");
                             }
+//                            else if (selectionKey.isWritable()) {
+//                                try {
+//                                    SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+//                                    socketChannel.configureBlocking(false);
+//
+//                                    socketChannel.write(charset.encode("data"));
+//                                    selectionKey.interestOps(SelectionKey.OP_READ);
+//                                } catch (Exception e) {
+//
+//                                }
+//                            }
 
                             iterator.remove();
                         }
@@ -130,15 +157,14 @@ public class ServerService {
     }
 
     protected void startServer() {
-
         try {
+            cache = Cache.getInstance();
             clients = new HashSet<>();
             connectionNum = 0;
-            serverSocketChannel = ServerSocketChannel.open();
             selector = Selector.open();
-            cache = Cache.getInstance();
-            serverSocketChannel.configureBlocking(false);
+            serverSocketChannel = ServerSocketChannel.open();
             serverSocketChannel.bind(new InetSocketAddress(44001));
+            serverSocketChannel.configureBlocking(false);
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
             System.out.println(Message.SERVER_START_MSG);
             runServer();
@@ -148,4 +174,27 @@ public class ServerService {
             e.printStackTrace();
         }
     }
+
+    void accept(SelectionKey selectionKey) {
+        try {
+            SocketChannel socketChannel = serverSocketChannel.accept();
+            System.out.println("클라이언트 정보: " + socketChannel.getRemoteAddress() + ": " + Thread.currentThread().getName());
+            if (socketChannel != null) {
+                socketChannel.configureBlocking(false);
+                socketChannel.register(selector, SelectionKey.OP_READ);
+                System.out.println("등록 성공");
+            }
+
+        } catch (IOException e) {
+            System.out.println("Accept failed");
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+
+            if (serverSocketChannel.isOpen()) {
+                stopServer();
+            }
+        }
+        System.out.println("Accept 메소드 종료");
+    }
+
 }

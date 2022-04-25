@@ -22,6 +22,7 @@ public class PutTask implements Runnable {
     public void run() {
         try {
             ByteBuffer buf = ByteBuffer.allocate(512);
+            buf.clear();
             Charset charset = StandardCharsets.UTF_8;
 
 
