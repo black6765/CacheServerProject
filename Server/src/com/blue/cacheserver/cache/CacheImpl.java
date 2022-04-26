@@ -14,23 +14,37 @@ public class CacheImpl<K, V> implements Cache<K, V>{
     // 데이터를 관리할 ConcurrentHashMap cacheMemory
     private Map<K, V> cacheMemory = new ConcurrentHashMap<>();
 
-    // put 시점의 타임스탬프 값을 key, cacheMemory의 key를 value로 하는 TreeMap
-    // TreeMap의 특성으로 자동으로 key 값인 타임스탬프(시간) 순으로 정렬됨
-    private Set<String> timeStampSet = new TreeSet<>();
+    // delimiter인 "=<-->=" 문자열을 기준으로 앞 부분은 타임스탬프, 뒷 부분은 cacheMemory의 Key 값이 저장
+    private TreeSet<String> timeStampKeySet = new TreeSet<>(new Comparator<String>() {
+        @Override
+        public int compare(String o1, String o2) {
+            // "=<-->=" 문자열은 타임스탬프와 키를 구분하기 위한 delimiter
+            String[] str1 = o1.split("=<-->=");
+            String[] str2 = o2.split("=<-->=");
+
+            if (str1.length >= 2 && str2.length >= 2 && str1[0].equals(str2[0])) {
+                return str1[1].compareTo(str2[1]);
+            }
+
+            return Long.compare(Long.parseLong(str1[0]), Long.parseLong(str2[0]));
+        }
+    });
 
     // Todo : eviction 메소드 작성
     public void eviction() {
         System.out.println("\n[Eviction start]");
-//        set구조로 되어 있으므로 더이상 필요 없을 듯 함
-//        Set<Long> keySet = timeStampMap.keySet();
         List<K> removedKeyList = new LinkedList<>();
 
         // 타임스탬프가 가장 오래된 entry 중 최대 크기의 일정 비율을 삭제 처리
         for (int i = 0; i < (MAX_SIZE / 2); i++) {
-//            keySet에서 제거한 것의 뒷부분(키)를 이용
-//            K target = timeStampMap.remove(timeStampMap.firstKey());
-//            cacheMemory.remove(target);
-//            removedKeyList.add(target);
+            System.out.println(timeStampKeySet);
+            String str = timeStampKeySet.first();
+            String[] splitStr = str.split("=<-->=");
+            timeStampKeySet.remove(str);
+            K target = (K) splitStr[1];
+            cacheMemory.remove(target);
+            removedKeyList.add(target);
+            System.out.println(timeStampKeySet);
         }
 
         System.out.println("- Removed key list -");
@@ -44,7 +58,8 @@ public class CacheImpl<K, V> implements Cache<K, V>{
             System.out.println(SERVER_CACHE_EVICTION_MSG);
         }
 
-        timeStampSet.add(String.valueOf(System.nanoTime()) + "\n" +key);
+        // "=<-->=" 문자열은 타임스탬프와 키를 구분하기 위한 delimiter
+        timeStampKeySet.add(String.valueOf(System.nanoTime()) + "=<-->=" + key);
         return cacheMemory.put(key, value);
     }
 
