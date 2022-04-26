@@ -163,6 +163,9 @@ public class ServerServiceImpl implements ServerService {
             // 클라이어트 측에서 연산의 종류와 그 연산에 대한 패러미터를 "\n"으로 구분하여 보내게 됨
             // 이를 split 메소드로 String[]에 저장
             String[] input = StandardCharsets.UTF_8.decode(buf).toString().split("\n");
+            for (String s : input) {
+                System.out.println("s = " + s);
+            }
 
 
             if ("1".equals(input[0])) {
@@ -178,6 +181,7 @@ public class ServerServiceImpl implements ServerService {
             selectionKey.cancel();
 
         } catch (ServerException e) {
+            selectionKey.cancel();
             System.out.println(SERVER_RECEIVE_FAILED_MSG);
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -204,6 +208,11 @@ public class ServerServiceImpl implements ServerService {
      */
     public void removeOperation(SocketChannel socketChannel, String[] input) {
         try {
+            if (input.length != 2) {
+                socketChannel.write(charset.encode("Client input invalid argument(s)"));
+                throw new ServerException("Client input invalid argument(s)");
+            }
+
             String str = cache.remove(input[1]);
 
             // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환
@@ -229,6 +238,11 @@ public class ServerServiceImpl implements ServerService {
      */
     public void getOperation(SocketChannel socketChannel, String[] input) {
         try {
+            if (input.length != 2) {
+                socketChannel.write(charset.encode("Client input invalid argument(s)"));
+                throw new ServerException("Client input invalid argument(s)");
+            }
+
             // Request get operation
             // cache에 주어진 key로 get 연산 실행
             String str = cache.get(input[1]);
@@ -256,6 +270,10 @@ public class ServerServiceImpl implements ServerService {
      */
     public void putOperation(SocketChannel socketChannel, String[] input) {
         try {
+            if (input.length != 3) {
+                socketChannel.write(charset.encode("Client input invalid argument(s)"));
+                throw new ServerException("Client input invalid argument(s)");
+            }
             String str = cache.put(input[1], input[2]);
 
             // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환

@@ -11,7 +11,9 @@ import java.nio.charset.StandardCharsets;
 
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
-import static com.blue.cacheserver.message.ClientSuccessMessage.CLIENT_CONNECTION_MSG;
+import static com.blue.cacheserver.message.ClientMessage.CLIENT_CONNECTION_MSG;
+import static com.blue.cacheserver.message.MessageColorCode.COLOR_RESET;
+import static com.blue.cacheserver.message.MessageColorCode.GREEN_COLOR;
 
 public class ClientConnectionImpl implements ClientConnection{
     ByteBuffer buf = ByteBuffer.allocate(512);
@@ -63,13 +65,13 @@ public class ClientConnectionImpl implements ClientConnection{
         String output = cmd + "\n" + key;
         socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server [ remove(" + key + ") ] operation");
+        System.out.println("\nSend to the server " + GREEN_COLOR + "remove(" + key + ") operation" + COLOR_RESET);
 
         socketChannel.read(buf);
         buf.flip();
 
         String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return [" + input + "]");
+        System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
     }
 
     public void requestGet(BufferedReader br, String cmd) throws IOException {
@@ -81,13 +83,13 @@ public class ClientConnectionImpl implements ClientConnection{
         String output = cmd + "\n" + key;
         socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server [ get(" + key + ") ] operation");
+        System.out.println("\nSend to the server " + GREEN_COLOR + "get(" + key + ")" + COLOR_RESET + " operation");
 
         socketChannel.read(buf);
         buf.flip();
 
         String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return [" + input + "]");
+        System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
     }
 
     public void requestPut(BufferedReader br, String cmd) throws IOException {
@@ -101,12 +103,12 @@ public class ClientConnectionImpl implements ClientConnection{
         String output = cmd + "\n" + key + "\n" + value;
         socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server [ put(" + key + ", " + value + ") ] operation");
+        System.out.println("\nSend to the server " + GREEN_COLOR + "put(" + key + ", " + value + ")" + COLOR_RESET + " operation");
 
         socketChannel.read(buf);
         buf.flip();
 
         String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return [" + input + "]");
+        System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
     }
 }

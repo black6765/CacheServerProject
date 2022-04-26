@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
-import static com.blue.cacheserver.message.ClientSuccessMessage.CLIENT_CONNECTION_MSG;
+import static com.blue.cacheserver.message.ClientMessage.CLIENT_CONNECTION_MSG;
 
 public class ClientConnectionImplTest implements ClientConnection{
     ByteBuffer buf = ByteBuffer.allocate(512);

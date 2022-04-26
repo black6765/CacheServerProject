@@ -16,19 +16,21 @@ public class CacheImpl<K, V> implements Cache<K, V>{
 
     // put 시점의 타임스탬프 값을 key, cacheMemory의 key를 value로 하는 TreeMap
     // TreeMap의 특성으로 자동으로 key 값인 타임스탬프(시간) 순으로 정렬됨
-    private TreeMap<Long, K> timeStampMap = new TreeMap<>();
+    private Set<String> timeStampSet = new TreeSet<>();
 
     // Todo : eviction 메소드 작성
     public void eviction() {
         System.out.println("\n[Eviction start]");
-        Set<Long> keySet = timeStampMap.keySet();
+//        set구조로 되어 있으므로 더이상 필요 없을 듯 함
+//        Set<Long> keySet = timeStampMap.keySet();
         List<K> removedKeyList = new LinkedList<>();
 
         // 타임스탬프가 가장 오래된 entry 중 최대 크기의 일정 비율을 삭제 처리
         for (int i = 0; i < (MAX_SIZE / 2); i++) {
-            K target = timeStampMap.remove(timeStampMap.firstKey());
-            cacheMemory.remove(target);
-            removedKeyList.add(target);
+//            keySet에서 제거한 것의 뒷부분(키)를 이용
+//            K target = timeStampMap.remove(timeStampMap.firstKey());
+//            cacheMemory.remove(target);
+//            removedKeyList.add(target);
         }
 
         System.out.println("- Removed key list -");
@@ -42,7 +44,7 @@ public class CacheImpl<K, V> implements Cache<K, V>{
             System.out.println(SERVER_CACHE_EVICTION_MSG);
         }
 
-        timeStampMap.put(System.nanoTime(), key);
+        timeStampSet.add(String.valueOf(System.nanoTime()) + "\n" +key);
         return cacheMemory.put(key, value);
     }
 
