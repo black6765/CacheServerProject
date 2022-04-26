@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
 import static com.blue.cacheserver.message.ClientSuccessMessage.CLIENT_CONNECTION_MSG;
 
@@ -27,8 +28,6 @@ public class ClientConnection {
             socketChannel.connect(new InetSocketAddress("localhost", 44001));
             System.out.println(CLIENT_CONNECTION_MSG);
 
-
-
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
             System.out.println("[Select Operation]");
@@ -36,7 +35,6 @@ public class ClientConnection {
             System.out.print("Enter the operation number: ");
             String cmd = br.readLine();
 
-            // Todo 각 연산마다 분기점 설정. 각 분기 메소드로 리팩토링
             if ("1".equals(cmd)) {
                 requestPut(br, cmd);
             } else if ("2".equals(cmd)) {
@@ -44,7 +42,8 @@ public class ClientConnection {
             } else if ("3".equals(cmd)) {
                 requestRemove(br, cmd);
             } else {
-                System.out.println("Client request not supported operation");
+                System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
+                socketChannel.write(charset.encode(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG));
             }
 
             br.close();
