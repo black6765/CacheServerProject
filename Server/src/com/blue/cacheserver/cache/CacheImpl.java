@@ -1,11 +1,9 @@
 package com.blue.cacheserver.cache;
 
-import com.blue.cacheserver.message.ServerException;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.blue.cacheserver.message.ErrorMessage.SERVER_CACHE_ALMOST_FULL_MSG;
+import static com.blue.cacheserver.message.ErrorMessage.SERVER_CACHE_FULL_MSG;
 import static com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 
 
@@ -39,12 +37,12 @@ public class CacheImpl<K, V> implements Cache<K, V>{
 
     public V put(K key, V value) {
         if (cacheMemory.size() >= MAX_SIZE) {
-            System.out.println(SERVER_CACHE_ALMOST_FULL_MSG);
+            System.out.println(SERVER_CACHE_FULL_MSG);
             eviction();
             System.out.println(SERVER_CACHE_EVICTION_MSG);
         }
 
-        timeStampMap.put(System.currentTimeMillis(), key);
+        timeStampMap.put(System.nanoTime(), key);
         return cacheMemory.put(key, value);
     }
 
