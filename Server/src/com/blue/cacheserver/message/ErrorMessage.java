@@ -6,6 +6,7 @@ public class ErrorMessage {
     public static final String SERVER_RUN_FAILED_MSG = "Server run failed";
     public static final String SERVER_PUT_FAILED_MSG = "Server put operation failed";
     public static final String SERVER_GET_FAILED_MSG = "Server get operation failed";
+    public static final String SERVER_REMOVE_FAILED_MSG = "Server remove operation failed";
     public static final String SERVER_ACCEPT_FAILED_MSG = "Server accept method failed";
     public static final String SERVER_RECEIVE_FAILED_MSG = "Server receive method failed";
     public static final String SERVER_CLIENT_OBJECT_CONSTRUCT_FAILED_MSG = "Server failed to construct Client object";

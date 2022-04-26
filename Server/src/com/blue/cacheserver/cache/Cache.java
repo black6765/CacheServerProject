@@ -1,11 +1,14 @@
 package com.blue.cacheserver.cache;
 
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+
 public class Cache<K, V> {
 
-    private Map<K, V> map = new ConcurrentHashMap<>();
+    private final int INITIAL_CAPACITY = 512;
+
+    private Map<K, V> map = new ConcurrentHashMap<>(INITIAL_CAPACITY);
 
     // Todo : eviction 메소드 작성
     public V eviction(K removeKey) {
@@ -28,11 +31,12 @@ public class Cache<K, V> {
         // Forbidden for Singleton Pattern
     }
 
+    // Singleton pattern using "LazyHolder"
     private static class LazyHolder {
-        public static final Cache INSTANCE = new Cache();
+        public static final Cache<?, ?> INSTANCE = new Cache<>();
     }
 
-    public static Cache getInstance() {
+    public static Cache<?, ?> getInstance() {
         return LazyHolder.INSTANCE;
     }
 }
