@@ -3,7 +3,9 @@
 /workspace.xml
 /build/
 /out/
-.gradle
+.gradle/
+Server/build/
+Client/build/
 
 ### Java template
 # Compiled class file
