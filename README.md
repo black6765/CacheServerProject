@@ -33,5 +33,22 @@
     - 본 프로젝트에서는 기본적으로 LRU 알고리즘을 적용함
     - 큐처럼 사용하는 LinkedList를 이용하여, eviction 시 삭제 대상을 관리함
 
-
-
+### **설명 & Usage**
+- localhost 내부에서의 통신, 외부 네트워크와의 통신에서 정상 작동 확인
+- 통신 기본 값은 하나의 localhost에서 Server와 Client를 함께 실행하도록 되어 있음
+    - `socketChannel.connect(new InetSocketAddress("hostname", 포트))에서 변경 가능`
+- **2022/4/27 기준 피드백을 받기 전 v.0.1.0**
+- **프로젝트 디렉토리 구조는 CacheServerProject라는 루트 프로젝트와 그 안에 있는 Server, Client라는 두 개의 프로젝트로 구성됨**
+    - 서버-클라이언트 두 개의 프로젝트를 하나의 레포지토리 구조에 저장하기 위함
+- **프로젝트 루트 디렉토리(이하 $HOME)에서 "./gradlew build" 명령어로 빌드**
+- **$HOME/Server/build/libs와 $HOME/Client/build/libs 디렉토리에 각각 서버와 클라이언트에 대한 jar 파일이 존재**
+    - java -jar 명령어를 통해 실행
+    - **서버 먼저 실행시켜야 하며, 클라이언트는 한 번의 실행 당 1번의 연산을 할 수 있음**
+        - 클라이언트는 put, get, remove 연산을 선택할 수 있고, 각 연산에 따른 argument(s)를 서버에게 보냄
+        - 서버는 요청을 받아서 처리하고, 이에 대한 return을 클라이언트에게 보냄
+            - 이에 대한 로그를 서버와 클라이언트에 각각 출력
+        - 클라이언트의 request에 대한 리턴 값을 클라이언트가 받은 후 연결 종료
+        - test에서는 loop를 통해 다중 클라이언트, 대량의 request에 대한 연산에서 이상 없음 확인
+    - **서버는 한번 실행 시 종료하지 않는 한 cacheMemory에 데이터 저장**
+        - CacheImpl에 정의된 메모리 최대 사이즈에 도달하면 다음 get 연산 시에 eviction이 실행됨
+            - 전체 메모리의 25%를 LRU 알고리즘으로 삭제 처리
