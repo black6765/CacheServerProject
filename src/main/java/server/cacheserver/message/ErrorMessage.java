@@ -1,6 +1,6 @@
-package Server.src.com.blue.cacheserver.message;
+package server.cacheserver.message;
 
-import static Server.src.com.blue.cacheserver.message.MessageColorCode.*;
+import static server.cacheserver.message.MessageColorCode.*;
 
 public class ErrorMessage {
     public static final String SERVER_START_FAILED_MSG = YELLOW_COLOR + "[INFO] Server start failed" + COLOR_RESET;

@@ -1,20 +1,25 @@
-package Server.src.com.blue.cacheserver.service;
+package server.cacheserver.service;
 
-import com.blue.cacheserver.cache.CacheImpl;
-import com.blue.cacheserver.message.ServerException;
+
+import server.cacheserver.cache.CacheImpl;
+import server.cacheserver.message.ServerException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.*;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.blue.cacheserver.message.ErrorMessage.*;
-import static com.blue.cacheserver.message.Message.*;
+import static server.cacheserver.message.ErrorMessage.*;
+import static server.cacheserver.message.Message.*;
+
 
 public class ServerServiceImpl implements ServerService {
 

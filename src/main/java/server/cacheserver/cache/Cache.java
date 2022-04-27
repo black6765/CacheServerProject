@@ -1,4 +1,4 @@
-package Server.src.com.blue.cacheserver.cache;
+package server.cacheserver.cache;
 
 public interface Cache<K, V> {
     void eviction();

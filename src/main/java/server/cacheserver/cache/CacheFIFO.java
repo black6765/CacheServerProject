@@ -1,12 +1,12 @@
-package Server.src.com.blue.cacheserver.cache;
+package server.cacheserver.cache;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static Server.src.com.blue.cacheserver.message.ErrorMessage.SERVER_CACHE_FULL_MSG;
-import static Server.src.com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
+import static server.cacheserver.message.ErrorMessage.SERVER_CACHE_FULL_MSG;
+import static server.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 
 // Cache의 구현체로, eviction에 대해서 FIFO 알고리즘 적용
 public class CacheFIFO<K, V> implements Cache<K, V> {

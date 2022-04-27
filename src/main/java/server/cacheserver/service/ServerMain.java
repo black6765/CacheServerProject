@@ -1,4 +1,4 @@
-package Server.src.com.blue.cacheserver.service;
+package server.cacheserver.service;
 
 public class ServerMain {
     public static void main(String[] args) {

@@ -1,4 +1,4 @@
-package Client.src.com.blue.cacheserver.message;
+package client.cacheserver.message;
 
 public class ClientErrorMessage {
 

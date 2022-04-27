@@ -1,4 +1,4 @@
-package Server.src.com.blue.cacheserver.message;
+package server.cacheserver.message;
 
 public class MessageColorCode {
     public static final String COLOR_RESET = "\u001B[0m";

@@ -1,4 +1,4 @@
-package Server.src.com.blue.cacheserver.message;
+package server.cacheserver.message;
 
 public class ServerException extends Exception {
 

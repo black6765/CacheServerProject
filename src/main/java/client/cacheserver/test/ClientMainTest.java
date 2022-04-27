@@ -1,7 +1,6 @@
-package Client.src.com.blue.cacheserver.test;
+package client.cacheserver.test;
 
-import Client.src.com.blue.cacheserver.start.ClientConnection;
-import Client.src.com.blue.cacheserver.start.ClientConnectionImpl;
+import client.cacheserver.start.ClientConnection;
 
 public class ClientMainTest {
     public static void main(String[] args) {

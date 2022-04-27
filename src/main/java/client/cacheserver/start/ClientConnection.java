@@ -1,8 +1,7 @@
-package Client.src.com.blue.cacheserver.start;
+package client.cacheserver.start;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
 
 public interface ClientConnection {
     void StartClient();

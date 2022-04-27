@@ -1,6 +1,6 @@
-package Client.src.com.blue.cacheserver.test;
+package client.cacheserver.test;
 
-import Client.src.com.blue.cacheserver.start.ClientConnection;
+import client.cacheserver.start.ClientConnection;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,11 +11,9 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import static Client.src.com.blue.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
-import static Client.src.com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
-import static Client.src.com.blue.cacheserver.message.ClientMessage.CLIENT_CONNECTION_MSG;
-import static com.blue.cacheserver.message.MessageColorCode.COLOR_RESET;
-import static com.blue.cacheserver.message.MessageColorCode.GREEN_COLOR;
+import static client.cacheserver.message.ClientErrorMessage.*;
+import static client.cacheserver.message.ClientMessage.*;
+import static server.cacheserver.message.MessageColorCode.*;
 
 public class ClientConnectionImplTest implements ClientConnection {
     ByteBuffer buf = ByteBuffer.allocate(512);

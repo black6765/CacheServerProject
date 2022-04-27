@@ -1,4 +1,4 @@
-package Server.src.com.blue.cacheserver.service;
+package server.cacheserver.service;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;

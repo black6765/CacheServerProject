@@ -1,10 +1,10 @@
-package Server.src.com.blue.cacheserver.cache;
+package server.cacheserver.cache;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static Server.src.com.blue.cacheserver.message.ErrorMessage.SERVER_CACHE_FULL_MSG;
-import static Server.src.com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
+import static server.cacheserver.message.ErrorMessage.SERVER_CACHE_FULL_MSG;
+import static server.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 
 // Cache의 기본 구현체로, eviction에 대해서 LRU 알고리즘 적용
 public class CacheImpl<K, V> implements Cache<K, V> {
