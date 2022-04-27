@@ -75,7 +75,7 @@ public class ClientConnectionImplTest implements ClientConnection {
     public void requestRemove(BufferedReader br, String cmd) throws IOException {
         System.out.println("\n[Remove operation]");
         System.out.print("Enter the key: ");
-        String key = String.valueOf((int) (Math.random() * 100));
+        String key = String.valueOf((int) (Math.random() * 1000));
 
         // 서버로 입력 정보 송신
         String output = cmd + "\n" + key;
@@ -93,7 +93,7 @@ public class ClientConnectionImplTest implements ClientConnection {
     public void requestGet(BufferedReader br, String cmd) throws IOException {
         System.out.println("\n[Get operation]");
         System.out.print("Enter the key: ");
-        String key = String.valueOf((int) (Math.random() * 100));
+        String key = String.valueOf((int) (Math.random() * 1000));
 
         // 서버로 입력 정보 송신
         String output = cmd + "\n" + key;
@@ -111,9 +111,9 @@ public class ClientConnectionImplTest implements ClientConnection {
     public void requestPut(BufferedReader br, String cmd) throws IOException {
         System.out.println("\n[Put operation]");
         System.out.print("Enter the key: ");
-        String key = String.valueOf((int) (Math.random() * 100));
+        String key = String.valueOf((int) (Math.random() * 1000));
         System.out.print("Enter the value: ");
-        String value = String.valueOf((int) (Math.random() * 100));
+        String value = String.valueOf((int) (Math.random() * 1000));
 
         // 서버로 입력 정보 송신
         String output = cmd + "\n" + key + "\n" + value;

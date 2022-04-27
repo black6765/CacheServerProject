@@ -9,7 +9,7 @@ import static com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 // Cache의 기본 구현체로, eviction에 대해서 LRU 알고리즘 적용
 public class CacheImpl<K, V> implements Cache<K, V> {
 
-    private final int MAX_SIZE = 512;
+    private final int MAX_SIZE = 4;
 
     // 데이터를 관리할 ConcurrentHashMap cacheMemory
     private Map<K, V> cacheMemory = new ConcurrentHashMap<>();
@@ -31,11 +31,11 @@ public class CacheImpl<K, V> implements Cache<K, V> {
 
         // LRU 알고리즘으로 eviction 대상을 삭제 처리
         for (int i = 0; i < (MAX_SIZE / 2); i++) {
-            System.out.println(queue); // 디버그
+//            System.out.println(queue); // 디버그
             K target = queue.removeFirst();
             cacheMemory.remove(target);
             removedKeyList.add(target);
-            System.out.println(queue); // 디버그
+//            System.out.println(queue); // 디버그
         }
 
         System.out.println("- Removed key list -");
