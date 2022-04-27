@@ -15,7 +15,7 @@ public class CacheFIFO<K, V> implements Cache<K, V> {
     // 데이터를 관리할 ConcurrentHashMap cacheMemory
     private Map<K, V> cacheMemory = new ConcurrentHashMap<>();
 
-    private List<K> queue = new LinkedList<>();
+    private List<K> expireQueue = new LinkedList<>();
     List<K> removedKeyList = new LinkedList<>();
 
     public void eviction() {
@@ -23,11 +23,11 @@ public class CacheFIFO<K, V> implements Cache<K, V> {
 
         // LRU 알고리즘으로 eviction 대상을 삭제 처리
         for (int i = 0; i < (MAX_SIZE / 2); i++) {
-            System.out.println(queue); // 디버그
-            K target = queue.remove(0);
+            System.out.println(expireQueue); // 디버그
+            K target = expireQueue.remove(0);
             cacheMemory.remove(target);
             removedKeyList.add(target);
-            System.out.println(queue); // 디버그
+            System.out.println(expireQueue); // 디버그
         }
 
         System.out.println("- Removed key list -");
@@ -42,7 +42,7 @@ public class CacheFIFO<K, V> implements Cache<K, V> {
             eviction();
 
         }
-        queue.add(queue.size(), key);
+        expireQueue.add(expireQueue.size(), key);
 
         return cacheMemory.put(key, value);
     }
@@ -54,8 +54,10 @@ public class CacheFIFO<K, V> implements Cache<K, V> {
     }
 
     public V remove(K key) {
-        int idx = queue.indexOf(key);
-        queue.remove(idx);
+        int idx = expireQueue.indexOf(key);
+        if (idx != -1) {
+            expireQueue.remove(idx);
+        }
 
         return cacheMemory.remove(key);
     }

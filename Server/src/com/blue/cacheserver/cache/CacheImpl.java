@@ -21,7 +21,7 @@ public class CacheImpl<K, V> implements Cache<K, V> {
      * eviction을 실행할 때 큐의 첫 번째 인덱스에서 제거
      * get과 remove 연산 시에 인덱스 접근을 하기 때문에 완전한 큐 자료구조는 아님
      */
-    private LinkedList<K> queue = new LinkedList<>();
+    private LinkedList<K> expireQueue = new LinkedList<>();
 
     // 삭제된 키들을 출력하기 위한 list
     List<K> removedKeyList = new LinkedList<>();
@@ -32,7 +32,7 @@ public class CacheImpl<K, V> implements Cache<K, V> {
         // LRU 알고리즘으로 eviction 대상을 삭제 처리
         for (int i = 0; i < (MAX_SIZE / 2); i++) {
 //            System.out.println(queue); // 디버그
-            K target = queue.removeFirst();
+            K target = expireQueue.removeFirst();
             cacheMemory.remove(target);
             removedKeyList.add(target);
 //            System.out.println(queue); // 디버그
@@ -50,28 +50,27 @@ public class CacheImpl<K, V> implements Cache<K, V> {
             eviction();
 
         }
-        queue.addLast(key);
+        expireQueue.addLast(key);
 
         return cacheMemory.put(key, value);
     }
 
     public V get(K key) {
-        int idx = queue.indexOf(key);
+        int idx = expireQueue.indexOf(key);
 
         if (idx != -1) {
             // Get 연산을 수행한 앤트리는 큐에 다시 넣어서 life-time을 갱신함
-            K refreshKey = queue.remove(idx);
-            queue.addLast(refreshKey);
+            K refreshKey = expireQueue.remove(idx);
+            expireQueue.addLast(refreshKey);
         }
-
 
         return cacheMemory.get(key);
     }
 
     public V remove(K key) {
-        int idx = queue.indexOf(key);
+        int idx = expireQueue.indexOf(key);
         if (idx != -1) {
-            queue.remove(idx);
+            expireQueue.remove(idx);
         }
 
         return cacheMemory.remove(key);
