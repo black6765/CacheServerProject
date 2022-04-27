@@ -1,6 +1,10 @@
 # Default ignored files
 /shelf/
 /workspace.xml
+/build/
+/out/
+/.gradle/
+
 ### Java template
 # Compiled class file
 *.class
@@ -22,7 +26,4 @@ hs_err_pid*
 
 # etc
 .idea
-.gradle
-build
-out
 *.iml
