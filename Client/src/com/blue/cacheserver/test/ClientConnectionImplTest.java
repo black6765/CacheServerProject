@@ -1,4 +1,6 @@
-package com.blue.cacheserver.start;
+package com.blue.cacheserver.test;
+
+import com.blue.cacheserver.start.ClientConnection;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,7 +17,7 @@ import static com.blue.cacheserver.message.ClientMessage.CLIENT_CONNECTION_MSG;
 import static com.blue.cacheserver.message.MessageColorCode.COLOR_RESET;
 import static com.blue.cacheserver.message.MessageColorCode.GREEN_COLOR;
 
-public class ClientConnectionImplTest implements ClientConnection{
+public class ClientConnectionImplTest implements ClientConnection {
     ByteBuffer buf = ByteBuffer.allocate(512);
     Charset charset = StandardCharsets.UTF_8;
     SocketChannel socketChannel;

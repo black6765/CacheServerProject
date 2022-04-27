@@ -160,6 +160,7 @@ public class ServerServiceImpl implements ServerService {
             }
 
             buf.flip();
+
             // 클라이어트 측에서 연산의 종류와 그 연산에 대한 패러미터를 "\n"으로 구분하여 보내게 됨
             // 이를 split 메소드로 String[]에 저장
             String[] input = StandardCharsets.UTF_8.decode(buf).toString().split("\n");
@@ -217,7 +218,7 @@ public class ServerServiceImpl implements ServerService {
 
             System.out.println("\n[Remove operation success]");
             System.out.println("<Request> Remove key = [" + input[1] + "]");
-            System.out.println("<Return> Return to client = [" + returnStr + "]");
+            System.out.println("<Return>  Return to client = [" + returnStr + "]");
             System.out.println(SERVER_REMOVE_MSG);
         } catch (Exception e) {
             System.out.println(SERVER_REMOVE_FAILED_MSG);
@@ -251,7 +252,7 @@ public class ServerServiceImpl implements ServerService {
 
             System.out.println("\n[Get operation success]");
             System.out.println("<Request> Get key = [" + input[1] + "]");
-            System.out.println("<Return> Return to client = [" + returnStr + "]");
+            System.out.println("<Return>  Return to client = [" + returnStr + "]");
             System.out.println(SERVER_GET_MSG);
         } catch (Exception e) {
             System.out.println(SERVER_GET_FAILED_MSG);
@@ -284,7 +285,7 @@ public class ServerServiceImpl implements ServerService {
             System.out.println("\n[Put operation success]");
             System.out.println("<Request> Put key = [" + input[1] + "]");
             System.out.println("<Request> Put value = [" + input[2] + "]");
-            System.out.println("<Return> Return to client = [" + returnStr + "]");
+            System.out.println("<Return>  Return to client = [" + returnStr + "]");
             System.out.println(SERVER_PUT_MSG);
         }  catch (Exception e) {
             System.out.println(SERVER_PUT_FAILED_MSG);
