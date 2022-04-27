@@ -1,5 +1,7 @@
 package client.cacheserver.start;
 
+import client.cacheserver.message.ClientMessage;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,8 +11,8 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import static client.cacheserver.message.ClientErrorMessage.*;
-import static client.cacheserver.message.ClientMessage.*;
+import static client.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
+import static client.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
 import static server.cacheserver.message.MessageColorCode.*;
 
 public class ClientConnectionImpl implements ClientConnection{
@@ -26,7 +28,7 @@ public class ClientConnectionImpl implements ClientConnection{
             System.out.println("\n[연결 요청 작업]\n");
 
             socketChannel.connect(new InetSocketAddress("localhost", 44001));
-            System.out.println(CLIENT_CONNECTION_MSG);
+            System.out.println(ClientMessage.CLIENT_CONNECTION_MSG);
 
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 

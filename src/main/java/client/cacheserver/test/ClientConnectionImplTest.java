@@ -11,8 +11,9 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import static client.cacheserver.message.ClientErrorMessage.*;
-import static client.cacheserver.message.ClientMessage.*;
+import static client.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
+import static client.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
+import static client.cacheserver.message.ClientMessage.CLIENT_CONNECTION_MSG;
 import static server.cacheserver.message.MessageColorCode.*;
 
 public class ClientConnectionImplTest implements ClientConnection {
