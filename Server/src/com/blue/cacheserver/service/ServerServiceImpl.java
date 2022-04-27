@@ -215,7 +215,7 @@ public class ServerServiceImpl implements ServerService {
             socketChannel.write(charset.encode(Objects.requireNonNullElse(str, "null")));
 
             System.out.println("\n[Remove operation success]");
-            System.out.println("Remove key = [" + input[1] + "]");
+            System.out.println("<Request> Remove key = [" + input[1] + "]");
             System.out.println(SERVER_REMOVE_MSG);
         } catch (Exception e) {
             System.out.println(SERVER_REMOVE_FAILED_MSG);
@@ -241,13 +241,13 @@ public class ServerServiceImpl implements ServerService {
 
             // Request get operation
             // cache에 주어진 key로 get 연산 실행
-            String str = cache.get(input[1]);
+            String str = String.valueOf(cache.get(input[1]));
 
             // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환
             socketChannel.write(charset.encode(Objects.requireNonNullElse(str, "null")));
 
             System.out.println("\n[Get operation success]");
-            System.out.println("Get key = [" + input[1] + "]");
+            System.out.println("<Request> Get key = [" + input[1] + "]");
             System.out.println(SERVER_GET_MSG);
         } catch (Exception e) {
             System.out.println(SERVER_GET_FAILED_MSG);
@@ -276,8 +276,8 @@ public class ServerServiceImpl implements ServerService {
             socketChannel.write(charset.encode(Objects.requireNonNullElse(str, "null")));
 
             System.out.println("\n[Put operation success]");
-            System.out.println("Put key = [" + input[1] + "]");
-            System.out.println("Put value = [" + input[2] + "]");
+            System.out.println("<Request> Put key = [" + input[1] + "]");
+            System.out.println("<Request> Put value = [" + input[2] + "]");
             System.out.println(SERVER_PUT_MSG);
         }  catch (Exception e) {
             System.out.println(SERVER_PUT_FAILED_MSG);

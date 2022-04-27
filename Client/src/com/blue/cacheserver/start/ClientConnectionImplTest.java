@@ -35,18 +35,18 @@ public class ClientConnectionImplTest implements ClientConnection{
             System.out.println("1. put\n2. get\n3. remove");
             System.out.print("Enter the operation number: ");
 
-            String cmd = "1";
+            String cmd;
 
-//            double r = Math.random() * 100;
-//            if ( r >= 90) {
-//                cmd = String.valueOf(4);
-//            } else if ( r >= 70){
-//                cmd = String.valueOf(3);
-//            } else if ( r >= 50){
-//                cmd = String.valueOf(2);
-//            } else {
-//                cmd = String.valueOf(1);
-//            }
+            double r = Math.random() * 100;
+            if ( r >= 90) {
+                cmd = String.valueOf(4);
+            } else if ( r >= 70){
+                cmd = String.valueOf(3);
+            } else if ( r >= 50){
+                cmd = String.valueOf(2);
+            } else {
+                cmd = String.valueOf(1);
+            }
 
             if ("1".equals(cmd)) {
                 requestPut(br, cmd);
@@ -71,7 +71,7 @@ public class ClientConnectionImplTest implements ClientConnection{
     public void requestRemove(BufferedReader br, String cmd) throws IOException {
         System.out.println("\n[Remove operation]");
         System.out.print("Enter the key: ");
-        String key = br.readLine();
+        String key = String.valueOf((int) (Math.random() * 10000));
 
         // 서버로 입력 정보 송신
         String output = cmd + "\n" + key;
@@ -89,7 +89,7 @@ public class ClientConnectionImplTest implements ClientConnection{
     public void requestGet(BufferedReader br, String cmd) throws IOException {
         System.out.println("\n[Get operation]");
         System.out.print("Enter the key: ");
-        String key = br.readLine();
+        String key = String.valueOf((int) (Math.random() * 10000));
 
         // 서버로 입력 정보 송신
         String output = cmd + "\n" + key;
