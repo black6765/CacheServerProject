@@ -1,1 +1,3 @@
 rootProject.name = 'CacheServerProject'
+include 'Server'
+include 'Client'
