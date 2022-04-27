@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
 import static com.blue.cacheserver.message.ClientMessage.CLIENT_CONNECTION_MSG;
+import static com.blue.cacheserver.message.MessageColorCode.COLOR_RESET;
+import static com.blue.cacheserver.message.MessageColorCode.GREEN_COLOR;
 
 public class ClientConnectionImplTest implements ClientConnection{
     ByteBuffer buf = ByteBuffer.allocate(512);
@@ -24,7 +26,7 @@ public class ClientConnectionImplTest implements ClientConnection{
             socketChannel = SocketChannel.open();
 
             socketChannel.configureBlocking(true);
-            System.out.println("[연결 요청 작업]\n");
+            System.out.println("\n[연결 요청 작업]\n");
 
             socketChannel.connect(new InetSocketAddress("localhost", 44001));
             System.out.println(CLIENT_CONNECTION_MSG);
@@ -38,7 +40,7 @@ public class ClientConnectionImplTest implements ClientConnection{
             String cmd;
 
             double r = Math.random() * 100;
-            if ( r >= 90) {
+            if ( r >= 100000) {
                 cmd = String.valueOf(4);
             } else if ( r >= 70){
                 cmd = String.valueOf(3);
@@ -71,56 +73,56 @@ public class ClientConnectionImplTest implements ClientConnection{
     public void requestRemove(BufferedReader br, String cmd) throws IOException {
         System.out.println("\n[Remove operation]");
         System.out.print("Enter the key: ");
-        String key = String.valueOf((int) (Math.random() * 10000));
+        String key = String.valueOf((int) (Math.random() * 100));
 
         // 서버로 입력 정보 송신
         String output = cmd + "\n" + key;
         socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server [ remove(" + key + ") ] operation");
+        System.out.println("\nSend to the server " + GREEN_COLOR + "remove(" + key + ")" + COLOR_RESET + " operation");
 
         socketChannel.read(buf);
         buf.flip();
 
         String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return [" + input + "]");
+        System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
     }
 
     public void requestGet(BufferedReader br, String cmd) throws IOException {
         System.out.println("\n[Get operation]");
         System.out.print("Enter the key: ");
-        String key = String.valueOf((int) (Math.random() * 10000));
+        String key = String.valueOf((int) (Math.random() * 100));
 
         // 서버로 입력 정보 송신
         String output = cmd + "\n" + key;
         socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server [ get(" + key + ") ] operation");
+        System.out.println("\nSend to the server " + GREEN_COLOR + "get(" + key + ")" + COLOR_RESET + " operation");
 
         socketChannel.read(buf);
         buf.flip();
 
         String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return [" + input + "]");
+        System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
     }
 
     public void requestPut(BufferedReader br, String cmd) throws IOException {
         System.out.println("\n[Put operation]");
         System.out.print("Enter the key: ");
-        String key = String.valueOf((int) (Math.random() * 10000));
+        String key = String.valueOf((int) (Math.random() * 100));
         System.out.print("Enter the value: ");
-        String value = String.valueOf((int) (Math.random() * 10000));
+        String value = String.valueOf((int) (Math.random() * 100));
 
         // 서버로 입력 정보 송신
         String output = cmd + "\n" + key + "\n" + value;
         socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server [ put(" + key + ", " + value + ") ] operation");
+        System.out.println("\nSend to the server " + GREEN_COLOR + "put(" + key + ", " + value + ")" + COLOR_RESET + " operation");
 
         socketChannel.read(buf);
         buf.flip();
 
         String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return [" + input + "]");
+        System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
     }
 }

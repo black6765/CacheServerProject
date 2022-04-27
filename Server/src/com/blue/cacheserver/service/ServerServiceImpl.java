@@ -210,12 +210,14 @@ public class ServerServiceImpl implements ServerService {
             }
 
             String str = cache.remove(input[1]);
+            String returnStr = Objects.requireNonNullElse(str, "null");
 
             // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환
-            socketChannel.write(charset.encode(Objects.requireNonNullElse(str, "null")));
+            socketChannel.write(charset.encode(returnStr));
 
             System.out.println("\n[Remove operation success]");
             System.out.println("<Request> Remove key = [" + input[1] + "]");
+            System.out.println("<Return> Return to client = [" + returnStr + "]");
             System.out.println(SERVER_REMOVE_MSG);
         } catch (Exception e) {
             System.out.println(SERVER_REMOVE_FAILED_MSG);
@@ -242,12 +244,14 @@ public class ServerServiceImpl implements ServerService {
             // Request get operation
             // cache에 주어진 key로 get 연산 실행
             String str = String.valueOf(cache.get(input[1]));
+            String returnStr = Objects.requireNonNullElse(str, "null");
 
             // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환
-            socketChannel.write(charset.encode(Objects.requireNonNullElse(str, "null")));
+            socketChannel.write(charset.encode(returnStr));
 
             System.out.println("\n[Get operation success]");
             System.out.println("<Request> Get key = [" + input[1] + "]");
+            System.out.println("<Return> Return to client = [" + returnStr + "]");
             System.out.println(SERVER_GET_MSG);
         } catch (Exception e) {
             System.out.println(SERVER_GET_FAILED_MSG);
@@ -272,12 +276,15 @@ public class ServerServiceImpl implements ServerService {
             }
             String str = cache.put(input[1], input[2]);
 
+            String returnStr = Objects.requireNonNullElse(str, "null");
+
             // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환
-            socketChannel.write(charset.encode(Objects.requireNonNullElse(str, "null")));
+            socketChannel.write(charset.encode(returnStr));
 
             System.out.println("\n[Put operation success]");
             System.out.println("<Request> Put key = [" + input[1] + "]");
             System.out.println("<Request> Put value = [" + input[2] + "]");
+            System.out.println("<Return> Return to client = [" + returnStr + "]");
             System.out.println(SERVER_PUT_MSG);
         }  catch (Exception e) {
             System.out.println(SERVER_PUT_FAILED_MSG);

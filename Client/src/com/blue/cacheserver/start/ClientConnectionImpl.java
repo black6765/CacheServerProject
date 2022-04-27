@@ -25,7 +25,7 @@ public class ClientConnectionImpl implements ClientConnection{
         try {
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(true);
-            System.out.println("[연결 요청 작업]\n");
+            System.out.println("\n[연결 요청 작업]\n");
 
             socketChannel.connect(new InetSocketAddress("localhost", 44001));
             System.out.println(CLIENT_CONNECTION_MSG);
@@ -65,7 +65,7 @@ public class ClientConnectionImpl implements ClientConnection{
         String output = cmd + "\n" + key;
         socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server " + GREEN_COLOR + "remove(" + key + ") operation" + COLOR_RESET);
+        System.out.println("\nSend to the server " + GREEN_COLOR + "remove(" + key + ")" + COLOR_RESET + " operation");
 
         socketChannel.read(buf);
         buf.flip();
