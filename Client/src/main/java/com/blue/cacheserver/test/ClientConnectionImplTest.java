@@ -22,52 +22,61 @@ public class ClientConnectionImplTest implements ClientConnection {
     SocketChannel socketChannel;
 
     public void StartClient() {
+        while (true) {
 
-        try {
-            socketChannel = SocketChannel.open();
+            try {
+                Thread.sleep(100);
+                socketChannel = SocketChannel.open();
 
-            socketChannel.configureBlocking(true);
-            System.out.println("\n[연결 요청 작업]\n");
+                socketChannel.configureBlocking(true);
+                System.out.println("\n[연결 요청 작업]\n");
 
-            socketChannel.connect(new InetSocketAddress("localhost", 44001));
-            System.out.println(CLIENT_CONNECTION_MSG);
+                socketChannel.connect(new InetSocketAddress("localhost", 44001));
+                System.out.println(CLIENT_CONNECTION_MSG);
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-            System.out.println("[Select Operation]");
-            System.out.println("1. put\n2. get\n3. remove");
-            System.out.print("Enter the operation number: ");
+                System.out.println("[Select Operation]");
+                System.out.println("1. put\n2. get\n3. remove");
+                System.out.print("Enter the operation number: ");
 
-            String cmd;
+                String cmd;
 
-            double r = Math.random() * 100;
-            if ( r >= 100000) {
-                cmd = String.valueOf(4);
-            } else if ( r >= 70){
-                cmd = String.valueOf(3);
-            } else if ( r >= 50){
-                cmd = String.valueOf(2);
-            } else {
-                cmd = String.valueOf(1);
+                double r = Math.random() * 100;
+                if (r >= 100000) {
+                    cmd = String.valueOf(4);
+                } else if (r >= 70) {
+                    cmd = String.valueOf(3);
+                } else if (r >= 50) {
+                    cmd = String.valueOf(2);
+                } else {
+                    cmd = String.valueOf(1);
+                }
+
+                if ("1".equals(cmd)) {
+                    requestPut(br, cmd);
+                } else if ("2".equals(cmd)) {
+                    requestGet(br, cmd);
+                } else if ("3".equals(cmd)) {
+                    requestRemove(br, cmd);
+//                } else if ("4".equals(cmd)) {
+//                    System.out.println("Exited");
+//                    socketChannel.close();
+//                    br.close();
+//                    break;
+                } else {
+                    System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
+                    socketChannel.write(charset.encode(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG));
+                }
+            } catch (IOException e) {
+                System.out.println(CLIENT_START_FAILED_MSG);
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            } catch (Exception e) {
+                System.out.println(CLIENT_START_FAILED_MSG);
+                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
-
-            if ("1".equals(cmd)) {
-                requestPut(br, cmd);
-            } else if ("2".equals(cmd)) {
-                requestGet(br, cmd);
-            } else if ("3".equals(cmd)) {
-                requestRemove(br, cmd);
-            } else {
-                System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
-                socketChannel.write(charset.encode(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG));
-            }
-
-            socketChannel.close();
-            br.close();
-        } catch (IOException e) {
-            System.out.println(CLIENT_START_FAILED_MSG);
-            System.out.println(e.getMessage());
-            e.printStackTrace();
         }
     }
 
