@@ -5,6 +5,7 @@ import com.blue.cacheserver.start.ClientConnection;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -22,10 +23,9 @@ public class ClientConnectionImplTest implements ClientConnection {
     SocketChannel socketChannel;
 
     public void StartClient() {
-        while (true) {
-
-            try {
-                Thread.sleep(100);
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        try {
+            while (true) {
                 socketChannel = SocketChannel.open();
 
                 socketChannel.configureBlocking(true);
@@ -34,7 +34,6 @@ public class ClientConnectionImplTest implements ClientConnection {
                 socketChannel.connect(new InetSocketAddress("localhost", 44001));
                 System.out.println(CLIENT_CONNECTION_MSG);
 
-                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
                 System.out.println("[Select Operation]");
                 System.out.println("1. put\n2. get\n3. remove");
@@ -68,15 +67,20 @@ public class ClientConnectionImplTest implements ClientConnection {
                     System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
                     socketChannel.write(charset.encode(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG));
                 }
-            } catch (IOException e) {
-                System.out.println(CLIENT_START_FAILED_MSG);
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            } catch (Exception e) {
-                System.out.println(CLIENT_START_FAILED_MSG);
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+                socketChannel.close();
             }
+        } catch (BindException e) {
+            System.out.println(CLIENT_START_FAILED_MSG);
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println(CLIENT_START_FAILED_MSG);
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println(CLIENT_START_FAILED_MSG);
+            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
