@@ -14,40 +14,46 @@ import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILE
 import static com.blue.cacheserver.message.ClientMessage.CLIENT_CONNECTION_MSG;
 import static com.blue.cacheserver.message.ClientMessageColorCode.*;
 
-public class ClientConnectionImpl implements ClientConnection{
+public class ClientConnectionImpl implements ClientConnection {
     ByteBuffer buf = ByteBuffer.allocate(512);
     Charset charset = StandardCharsets.UTF_8;
     SocketChannel socketChannel;
 
     public void StartClient() {
-
         try {
-            socketChannel = SocketChannel.open();
-            socketChannel.configureBlocking(true);
-            System.out.println("\n[연결 요청 작업]\n");
+            // 서버는 비연결성(Connectionless) 설계로 기본적으로 한 번의 연결 당 한 쌍의 operation(request-response)을 처리함
+            // Exit를 선택할 때 까지 looping
+            while (true) {
+                socketChannel = SocketChannel.open();
+                socketChannel.configureBlocking(true);
+                System.out.println("\n[연결 요청 작업]");
 
-            socketChannel.connect(new InetSocketAddress("localhost", 44001));
-            System.out.println(CLIENT_CONNECTION_MSG);
+                socketChannel.connect(new InetSocketAddress("localhost", 44001));
+                System.out.println(CLIENT_CONNECTION_MSG);
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-            System.out.println("[Select Operation]");
-            System.out.println("1. put\n2. get\n3. remove");
-            System.out.print("Enter the operation number: ");
-            String cmd = br.readLine();
+                System.out.println("[Select Operation]");
+                System.out.println("1. put\n2. get\n3. remove\n4. exit");
+                System.out.print("Enter the operation number: ");
+                String cmd = br.readLine();
 
-            if ("1".equals(cmd)) {
-                requestPut(br, cmd);
-            } else if ("2".equals(cmd)) {
-                requestGet(br, cmd);
-            } else if ("3".equals(cmd)) {
-                requestRemove(br, cmd);
-            } else {
-                System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
-                socketChannel.write(charset.encode(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG));
+                if ("1".equals(cmd)) {
+                    requestPut(br, cmd);
+                } else if ("2".equals(cmd)) {
+                    requestGet(br, cmd);
+                } else if ("3".equals(cmd)) {
+                    requestRemove(br, cmd);
+                } else if ("4".equals(cmd)) {
+                    System.out.println("Exited");
+                    socketChannel.close();
+                    br.close();
+                    break;
+                } else {
+                    System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
+                    socketChannel.write(charset.encode(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG));
+                }
             }
-
-            br.close();
         } catch (IOException e) {
             System.out.println(CLIENT_START_FAILED_MSG);
             System.out.println(e.getMessage());

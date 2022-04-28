@@ -5,7 +5,9 @@
 /out/
 .gradle/
 Server/build/
+Server/out/
 Client/build/
+Client/out/
 
 ### Java template
 # Compiled class file

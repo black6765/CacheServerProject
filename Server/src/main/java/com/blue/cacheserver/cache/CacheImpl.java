@@ -9,11 +9,11 @@ import static com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 // Cache의 기본 구현체로, eviction에 대해서 LRU 알고리즘 적용
 public class CacheImpl<K, V> implements Cache<K, V> {
 
-    private final int MAX_SIZE = 16;
-    private final int INIT_SIZE = MAX_SIZE / 2;
+    final int MAX_SIZE = 8;
+    final int INIT_SIZE = MAX_SIZE / 2;
 
     // 데이터를 관리할 ConcurrentHashMap cacheMemory
-    private Map<K, V> cacheMemory = new ConcurrentHashMap<>(INIT_SIZE);
+    Map<K, V> cacheMemory = new ConcurrentHashMap<>(INIT_SIZE);
 
     /*
      * removeFirst(), addLast() 메소드를 사용하기 위해 LinkedList
@@ -22,7 +22,7 @@ public class CacheImpl<K, V> implements Cache<K, V> {
      * eviction을 실행할 때 큐의 첫 번째 인덱스에서 제거
      * get과 remove 연산 시에 인덱스 접근을 하기 때문에 완전한 큐 자료구조는 아님
      */
-    private LinkedList<K> evictionQueue = new LinkedList<>();
+    LinkedList<K> evictionQueue = new LinkedList<>();
 
     // 삭제된 키들을 출력하기 위한 list
     List<K> removedKeyList = new LinkedList<>();
@@ -47,8 +47,8 @@ public class CacheImpl<K, V> implements Cache<K, V> {
         if (cacheMemory.size() >= MAX_SIZE) {
             System.out.println(SERVER_CACHE_FULL_MSG);
             eviction();
-
         }
+
         evictionQueue.addLast(key);
 
         return cacheMemory.put(key, value);
@@ -75,8 +75,9 @@ public class CacheImpl<K, V> implements Cache<K, V> {
         return cacheMemory.remove(key);
     }
 
-    private CacheImpl() {
-        // Forbidden for Singleton Pattern
+    // 싱글톤 패턴에서 생성자는 보통 private 이지만, 상속을 위해 package-private(default)로 설정
+    CacheImpl() {
+
     }
 
     // Singleton pattern using "LazyHolder"

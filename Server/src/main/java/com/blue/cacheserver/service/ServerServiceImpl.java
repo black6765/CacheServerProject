@@ -1,6 +1,9 @@
 package com.blue.cacheserver.service;
 
+import com.blue.cacheserver.cache.Cache;
 import com.blue.cacheserver.cache.CacheImpl;
+import com.blue.cacheserver.cache.CacheImplFIFO;
+import com.blue.cacheserver.message.DisconnectException;
 import com.blue.cacheserver.message.ServerException;
 
 import java.io.IOException;
@@ -21,7 +24,7 @@ public class ServerServiceImpl implements ServerService {
     private Selector selector;
     private final Charset charset = StandardCharsets.UTF_8;
     private ServerSocketChannel serverSocketChannel;
-    private CacheImpl<String, String> cache;
+    private Cache<String, String> cache;
 
     /**
      * 별도의 스레드로 Server를 동작시킴
@@ -94,6 +97,7 @@ public class ServerServiceImpl implements ServerService {
     public void startServer() {
         try {
             // 싱글톤 패턴으로 cache 인스턴스를 가져옴
+            // 기본 자료형을 <String, String>으로 설정
             cache = (CacheImpl<String, String>) CacheImpl.getInstance();
 
             // Selector를 open
@@ -155,8 +159,7 @@ public class ServerServiceImpl implements ServerService {
 
             int byteCount = socketChannel.read(buf);
             if (byteCount == -1) {
-                System.out.println("Client is disconnected");
-                throw new IOException();
+                throw new DisconnectException("Close the connection");
             }
 
             buf.flip();
@@ -169,12 +172,15 @@ public class ServerServiceImpl implements ServerService {
                 putOperation(socketChannel, input);
             } else if ("2".equals(input[0])) {
                 getOperation(socketChannel, input);
-            } else if ("3".equals((input[0]))) {
+            } else if ("3".equals(input[0])) {
                 removeOperation(socketChannel, input);
+            } else if ("4".equals(input[0])) {
+                throw new DisconnectException("Close the connection");
             } else {
                 throw new ServerException("Client request not supported operation");
             }
 
+            socketChannel.close();
             selectionKey.cancel();
 
         } catch (ServerException e) {
@@ -182,6 +188,9 @@ public class ServerServiceImpl implements ServerService {
             System.out.println(SERVER_RECEIVE_FAILED_MSG);
             System.out.println(e.getMessage());
             e.printStackTrace();
+        } catch (DisconnectException e) {
+            System.out.println(SERVER_CLIENT_DISCONNECT_MSG);
+            selectionKey.cancel();
         } catch (IOException e) {
             selectionKey.cancel();
             System.out.println(SERVER_RECEIVE_FAILED_MSG);
