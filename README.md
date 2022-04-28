@@ -34,7 +34,7 @@
     - 큐처럼 사용하는 LinkedList를 이용하여, eviction 시 삭제 대상을 관리함
 
 ### **설명 & Usage**
-- localhost 내부에서의 통신, 외부 네트워크와의 통신에서 정상 작동 확인
+- **localhost 내부에서의 통신, 외부 네트워크와의 통신에서 정상 작동 확인**
 - 통신 기본 값은 하나의 localhost에서 Server와 Client를 함께 실행하도록 되어 있음
     - `socketChannel.connect(new InetSocketAddress("hostname", 포트))에서 변경 가능`
 - **2022/4/27 기준 피드백을 받기 전 v.0.1.0**
@@ -50,5 +50,5 @@
         - 클라이언트의 request에 대한 리턴 값을 클라이언트가 받은 후 연결 종료
         - test에서는 loop를 통해 다중 클라이언트, 대량의 request에 대한 연산에서 이상 없음 확인
     - **서버는 한번 실행 시 종료하지 않는 한 cacheMemory에 데이터 저장**
-        - CacheImpl에 정의된 메모리 최대 사이즈에 도달하면 다음 get 연산 시에 eviction이 실행됨
+        - CacheImpl에 정의된 메모리 최대 사이즈에 도달하면 다음 put 연산 시에 eviction이 실행됨
             - 전체 메모리의 25%를 LRU 알고리즘으로 삭제 처리
