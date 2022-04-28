@@ -26,6 +26,8 @@ public class ClientConnectionImplTest implements ClientConnection {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
             while (true) {
+                Thread.sleep(10);
+                
                 socketChannel = SocketChannel.open();
 
                 socketChannel.configureBlocking(true);
