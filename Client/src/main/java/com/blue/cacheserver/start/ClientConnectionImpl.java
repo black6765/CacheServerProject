@@ -23,18 +23,14 @@ public class ClientConnectionImpl implements ClientConnection {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-            // 서버는 비연결성(Connectionless) 설계로 기본적으로 한 번의 연결 당 한 쌍의 operation(request-response)을 처리함
-            // Exit를 선택할 때 까지 looping
+            socketChannel = SocketChannel.open();
+            socketChannel.configureBlocking(true);
+            System.out.println("\n[연결 요청 작업]");
+
+            socketChannel.connect(new InetSocketAddress("localhost", 44001));
+            System.out.println(CLIENT_CONNECTION_MSG);
+
             while (true) {
-                socketChannel = SocketChannel.open();
-                socketChannel.configureBlocking(true);
-                System.out.println("\n[연결 요청 작업]");
-
-                socketChannel.connect(new InetSocketAddress("localhost", 44001));
-                System.out.println(CLIENT_CONNECTION_MSG);
-
-
-
                 System.out.println("[Select Operation]");
                 System.out.println("1. put\n2. get\n3. remove\n4. exit");
                 System.out.print("Enter the operation number: ");
@@ -55,7 +51,6 @@ public class ClientConnectionImpl implements ClientConnection {
                     System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
                     socketChannel.write(charset.encode(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG));
                 }
-                socketChannel.close();
             }
         } catch (IOException e) {
             System.out.println(CLIENT_START_FAILED_MSG);

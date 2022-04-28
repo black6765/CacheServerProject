@@ -152,8 +152,8 @@ public class ServerServiceImpl implements ServerService {
      * param : SelectionKey
      */
     public void receive(SelectionKey selectionKey) {
-        try (SocketChannel socketChannel = (SocketChannel) selectionKey.channel()) {
-
+        try {
+            SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
             socketChannel.configureBlocking(false);
             ByteBuffer buf = ByteBuffer.allocate(512);
 
@@ -179,10 +179,6 @@ public class ServerServiceImpl implements ServerService {
             } else {
                 throw new ServerException("Client request not supported operation");
             }
-
-            socketChannel.close();
-            selectionKey.cancel();
-
         } catch (ServerException e) {
             selectionKey.cancel();
             System.out.println(SERVER_RECEIVE_FAILED_MSG);
