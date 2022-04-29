@@ -1,8 +1,6 @@
 package com.blue.cacheserver.start;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -18,6 +16,7 @@ public class ClientConnection {
     ByteBuffer buf = ByteBuffer.allocate(512);
     Charset charset = StandardCharsets.UTF_8;
     SocketChannel socketChannel;
+    final String DELIMITER = "<=";
 
     public void StartClient() {
         try {
@@ -32,17 +31,18 @@ public class ClientConnection {
 
             while (true) {
                 System.out.println("[Select Operation]");
-                System.out.println("1. put\n2. get\n3. remove\n4. exit");
-                System.out.print("Enter the operation number: ");
-                String cmd = br.readLine();
+                System.out.println("option: put, get, remove, exit");
+                String[] cmd = br.readLine().split(" ");
 
-                if ("1".equals(cmd)) {
-                    requestPut(br, cmd);
-                } else if ("2".equals(cmd)) {
-                    requestGet(br, cmd);
-                } else if ("3".equals(cmd)) {
-                    requestRemove(br, cmd);
-                } else if ("4".equals(cmd)) {
+                System.out.println(cmd[0]);
+
+                if ("put".equals(cmd[0])) {
+                    requestPut(cmd);
+                } else if ("get".equals(cmd[0])) {
+                    requestGet(cmd);
+                } else if ("remove".equals(cmd[0])) {
+                    requestRemove(cmd);
+                } else if ("exit".equals(cmd[0])) {
                     System.out.println("Exited");
                     socketChannel.close();
                     br.close();
@@ -59,16 +59,14 @@ public class ClientConnection {
         }
     }
 
-    public void requestRemove(BufferedReader br, String cmd) throws IOException {
+    public void requestRemove(String[] cmd) throws IOException {
         System.out.println("\n[Remove operation]");
-        System.out.print("Enter the key: ");
-        String key = br.readLine();
 
         // 서버로 입력 정보 송신
-        String output = cmd + "\n" + key;
-        socketChannel.write(charset.encode(output));
+//        String output = cmd + "\n" + key;
+//        socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server " + GREEN_COLOR + "remove(" + key + ")" + COLOR_RESET + " operation");
+//        System.out.println("\nSend to the server " + GREEN_COLOR + "remove(" + key + ")" + COLOR_RESET + " operation");
 
         socketChannel.read(buf);
         buf.flip();
@@ -77,16 +75,14 @@ public class ClientConnection {
         System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
     }
 
-    public void requestGet(BufferedReader br, String cmd) throws IOException {
+    public void requestGet(String[] cmd) throws IOException {
         System.out.println("\n[Get operation]");
-        System.out.print("Enter the key: ");
-        String key = br.readLine();
 
         // 서버로 입력 정보 송신
-        String output = cmd + "\n" + key;
-        socketChannel.write(charset.encode(output));
+//        String output = cmd + "\n" + key;
+//        socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server " + GREEN_COLOR + "get(" + key + ")" + COLOR_RESET + " operation");
+//        System.out.println("\nSend to the server " + GREEN_COLOR + "get(" + key + ")" + COLOR_RESET + " operation");
 
         socketChannel.read(buf);
         buf.flip();
@@ -95,23 +91,64 @@ public class ClientConnection {
         System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
     }
 
-    public void requestPut(BufferedReader br, String cmd) throws IOException {
+    public void requestPut(String[] cmd) throws IOException {
         System.out.println("\n[Put operation]");
-        System.out.print("Enter the key: ");
-        String key = br.readLine();
-        System.out.print("Enter the value: ");
-        String value = br.readLine();
+
+        byte[] serializedOperation = serialize(cmd[0]);
+        byte[] serializedKey = serialize(cmd[1]);
+        byte[] serializedValue = serialize(cmd[2]);
+
+        byte[] concatBytes = new byte[serializedOperation.length +
+                serializedKey.length + serializedValue.length + 2 * (DELIMITER.length())];
+
+        int idx = 0;
+        for (byte b : serializedOperation) {
+            concatBytes[idx++] = b;
+            System.out.println("b = " + b);
+        }
+        System.out.println("=====================");
+        concatBytes[idx++] = '<';
+        concatBytes[idx++] = '=';
+//        concatBytes[idx++] = '>';
+        
+        for (byte b : serializedKey) {
+            concatBytes[idx++] = b;
+        }
+
+        concatBytes[idx++] = '<';
+        concatBytes[idx++] = '=';
+//        concatBytes[idx++] = '>';
+
+        for (byte b : serializedValue) {
+            concatBytes[idx++] = b;
+        }
+        
+        for (byte b : concatBytes) {
+            System.out.println("b = " + b);
+        }
+
+        socketChannel.write(ByteBuffer.wrap(concatBytes));
 
         // 서버로 입력 정보 송신
-        String output = cmd + "\n" + key + "\n" + value;
-        socketChannel.write(charset.encode(output));
+//        String output = cmd + "\n" + key + "\n" + value;
+//        socketChannel.write(charset.encode(output));
         buf.clear();
-        System.out.println("\nSend to the server " + GREEN_COLOR + "put(" + key + ", " + value + ")" + COLOR_RESET + " operation");
+//        System.out.println("\nSend to the server " + GREEN_COLOR + "put(" + key + ", " + value + ")" + COLOR_RESET + " operation");
 
         socketChannel.read(buf);
         buf.flip();
 
         String input = StandardCharsets.UTF_8.decode(buf).toString();
         System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
+    }
+
+    private byte[] serialize(Object obj) throws IOException {
+        byte[] serializedObj;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(obj);
+        serializedObj = baos.toByteArray();
+
+        return serializedObj;
     }
 }
