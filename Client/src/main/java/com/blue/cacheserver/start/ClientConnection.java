@@ -104,28 +104,24 @@ public class ClientConnection {
         int idx = 0;
         for (byte b : serializedOperation) {
             concatBytes[idx++] = b;
-            System.out.println("b = " + b);
         }
-        System.out.println("=====================");
+
         concatBytes[idx++] = '<';
         concatBytes[idx++] = '=';
-//        concatBytes[idx++] = '>';
-        
+
         for (byte b : serializedKey) {
             concatBytes[idx++] = b;
         }
 
         concatBytes[idx++] = '<';
         concatBytes[idx++] = '=';
-//        concatBytes[idx++] = '>';
 
         for (byte b : serializedValue) {
             concatBytes[idx++] = b;
         }
-        
-        for (byte b : concatBytes) {
-            System.out.println("b = " + b);
-        }
+
+        String s = new String(serializedKey);
+        System.out.println("s = " + s);
 
         socketChannel.write(ByteBuffer.wrap(concatBytes));
 

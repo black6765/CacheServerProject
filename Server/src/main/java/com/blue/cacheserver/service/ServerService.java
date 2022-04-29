@@ -15,7 +15,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.Set;
 
 import static com.blue.cacheserver.message.ErrorMessage.*;
@@ -26,7 +25,8 @@ public class ServerService {
     private Selector selector;
     private final Charset charset = StandardCharsets.UTF_8;
     private ServerSocketChannel serverSocketChannel;
-    private Cache<String, String> cache;
+    private Cache<byte[], byte[]> cache;
+    final String DELIMITER = "<=";
 
     /**
      * 별도의 스레드로 Server를 동작시킴
@@ -193,14 +193,17 @@ public class ServerService {
             System.out.println(operation);
 
             if ("put".equals(operation)) {
-                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+2, splitIdx[1]);
-                valueBytes = Arrays.copyOfRange(bytes, splitIdx[1]+2, bytes.length);
+                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+DELIMITER.length(), splitIdx[1]);
+                valueBytes = Arrays.copyOfRange(bytes, splitIdx[1]+DELIMITER.length(), bytes.length);
+                for (byte b : keyBytes) {
+                    System.out.print(b);
+                }
                 putOperation(socketChannel, keyBytes, valueBytes);
             } else if ("get".equals(operation)) {
-                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+2, bytes.length);
+                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+DELIMITER.length(), bytes.length);
                 getOperation(socketChannel, keyBytes);
             } else if ("remove".equals(operation)) {
-                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+2, bytes.length);
+                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+DELIMITER.length(), bytes.length);
                 removeOperation(socketChannel, keyBytes);
             } else if ("exit".equals(operation)) {
                 throw new DisconnectException("Close the connection");
@@ -311,12 +314,19 @@ public class ServerService {
 
 
 //            String str = cache.put(keyBytes, valueBytes);
-            String str = cache.put("1", "1");
 
-            String returnStr = Objects.requireNonNullElse(str, "null");
 
+            byte[] returnVal = cache.put(keyBytes, valueBytes);
+            String returnStr;
             // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환
-            socketChannel.write(charset.encode(returnStr));
+            if (returnVal == null) {
+                socketChannel.write(charset.encode("null"));
+                returnStr = "null";
+            } else {
+                socketChannel.write(ByteBuffer.wrap(returnVal));
+                returnStr = new String(returnVal);
+            }
+
 
             System.out.println("\n[Put operation success]");
 //            System.out.println("<Request> Put key = [" + input[1] + "]");
