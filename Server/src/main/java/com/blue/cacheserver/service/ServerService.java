@@ -25,7 +25,7 @@ public class ServerService {
     private Selector selector;
     private final Charset charset = StandardCharsets.UTF_8;
     private ServerSocketChannel serverSocketChannel;
-    private Cache<byte[], byte[]> cache;
+    private Cache<String, String> cache;
     final String DELIMITER = "<=";
 
     /**
@@ -168,7 +168,7 @@ public class ServerService {
 
             buf.flip();
 
-            final byte[] bytes = new byte[byteCount];
+            byte[] bytes = new byte[byteCount];
             buf.get(bytes);
 
             int[] splitIdx = new int[2];
@@ -188,22 +188,23 @@ public class ServerService {
             ByteArrayInputStream bais = new ByteArrayInputStream(operationBytes);
             ObjectInputStream ois = new ObjectInputStream(bais);
             Object objectMember = ois.readObject();
-            
+
+
             String operation = (String) objectMember;
             System.out.println(operation);
 
             if ("put".equals(operation)) {
                 keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+DELIMITER.length(), splitIdx[1]);
                 valueBytes = Arrays.copyOfRange(bytes, splitIdx[1]+DELIMITER.length(), bytes.length);
-                for (byte b : keyBytes) {
-                    System.out.print(b);
-                }
+
                 putOperation(socketChannel, keyBytes, valueBytes);
             } else if ("get".equals(operation)) {
                 keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+DELIMITER.length(), bytes.length);
+
                 getOperation(socketChannel, keyBytes);
             } else if ("remove".equals(operation)) {
                 keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+DELIMITER.length(), bytes.length);
+
                 removeOperation(socketChannel, keyBytes);
             } else if ("exit".equals(operation)) {
                 throw new DisconnectException("Close the connection");
@@ -314,16 +315,19 @@ public class ServerService {
 
 
 //            String str = cache.put(keyBytes, valueBytes);
+            String keyBytesStr = new String(keyBytes);
+            String valueBytesStr = new String(valueBytes);
 
 
-            byte[] returnVal = cache.put(keyBytes, valueBytes);
+            String returnVal = cache.put(keyBytesStr, valueBytesStr);
             String returnStr;
             // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));
                 returnStr = "null";
             } else {
-                socketChannel.write(ByteBuffer.wrap(returnVal));
+//                socketChannel.write(ByteBuffer.wrap(returnVal));
+                socketChannel.write(charset.encode(returnVal));
                 returnStr = new String(returnVal);
             }
 

@@ -120,7 +120,7 @@ public class ClientConnection {
             concatBytes[idx++] = b;
         }
 
-        String s = new String(serializedKey);
+        String s = new String(serializedValue);
         System.out.println("s = " + s);
 
         socketChannel.write(ByteBuffer.wrap(concatBytes));
@@ -131,12 +131,21 @@ public class ClientConnection {
         buf.clear();
 //        System.out.println("\nSend to the server " + GREEN_COLOR + "put(" + key + ", " + value + ")" + COLOR_RESET + " operation");
 
-        socketChannel.read(buf);
+        int byteCount = socketChannel.read(buf);
         buf.flip();
 
-        String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
+
+        byte[] bytes = new byte[byteCount];
+        buf.get(bytes);
+
+        String str = new String(bytes);
+        System.out.println("s = " + str);
+
+//            String input = StandardCharsets.UTF_8.decode(buf).toString();
+        System.out.println("\nServer return " + "[" + GREEN_COLOR + str + COLOR_RESET + "]");
+
     }
+
 
     private byte[] serialize(Object obj) throws IOException {
         byte[] serializedObj;
