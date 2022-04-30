@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
 import static com.blue.cacheserver.message.ClientMessage.CLIENT_CONNECTION_MSG;
-import static com.blue.cacheserver.message.ClientMessageColorCode.*;
+
 
 public class ClientConnection {
     ByteBuffer buf = ByteBuffer.allocate(512);
@@ -30,11 +30,8 @@ public class ClientConnection {
             System.out.println(CLIENT_CONNECTION_MSG);
 
             while (true) {
-                System.out.println("[Select Operation]");
-                System.out.println("option: put, get, remove, exit");
+                System.out.println("Select operation: put, get, remove, exit");
                 String[] cmd = br.readLine().split(" ");
-
-                System.out.println(cmd[0]);
 
                 if ("put".equals(cmd[0])) {
                     requestPut(cmd);
@@ -59,20 +56,24 @@ public class ClientConnection {
         }
     }
 
-    public void requestRemove(String[] cmd) throws IOException {
-        System.out.println("\n[Remove operation]");
+    public void requestPut(String[] cmd) throws IOException {
+        byte[] concatBytes = getConcatBytes(cmd);
 
-        // 서버로 입력 정보 송신
-//        String output = cmd + "\n" + key;
-//        socketChannel.write(charset.encode(output));
+        socketChannel.write(ByteBuffer.wrap(concatBytes));
         buf.clear();
-//        System.out.println("\nSend to the server " + GREEN_COLOR + "remove(" + key + ")" + COLOR_RESET + " operation");
 
-        socketChannel.read(buf);
+        int byteCount = socketChannel.read(buf);
         buf.flip();
+        byte[] bytes = new byte[byteCount];
+        buf.get(bytes);
 
-        String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
+        String returnVal;
+        if ("null".equals((new String(bytes))))
+            returnVal = "null";
+        else
+            returnVal = (String) deserialize(bytes);
+
+        System.out.println("Server return: " + returnVal);
     }
 
     public void requestGet(String[] cmd) throws IOException {
@@ -88,12 +89,26 @@ public class ClientConnection {
         buf.flip();
 
         String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return " + "[" + GREEN_COLOR + input + COLOR_RESET + "]");
+        System.out.println(input);
     }
 
-    public void requestPut(String[] cmd) throws IOException {
-        System.out.println("\n[Put operation]");
+    public void requestRemove(String[] cmd) throws IOException {
+        System.out.println("\n[Remove operation]");
 
+        // 서버로 입력 정보 송신
+//        String output = cmd + "\n" + key;
+//        socketChannel.write(charset.encode(output));
+        buf.clear();
+//        System.out.println("\nSend to the server " + GREEN_COLOR + "remove(" + key + ")" + COLOR_RESET + " operation");
+
+        socketChannel.read(buf);
+        buf.flip();
+
+        String input = StandardCharsets.UTF_8.decode(buf).toString();
+        System.out.println(input);
+    }
+
+    private byte[] getConcatBytes(String[] cmd) throws IOException {
         byte[] serializedOperation = serialize(cmd[0]);
         byte[] serializedKey = serialize(cmd[1]);
         byte[] serializedValue = serialize(cmd[2]);
@@ -102,48 +117,22 @@ public class ClientConnection {
                 serializedKey.length + serializedValue.length + 2 * (DELIMITER.length())];
 
         int idx = 0;
-        for (byte b : serializedOperation) {
+        for (byte b : serializedOperation)
             concatBytes[idx++] = b;
-        }
 
         concatBytes[idx++] = '<';
         concatBytes[idx++] = '=';
 
-        for (byte b : serializedKey) {
+        for (byte b : serializedKey)
             concatBytes[idx++] = b;
-        }
 
         concatBytes[idx++] = '<';
         concatBytes[idx++] = '=';
 
-        for (byte b : serializedValue) {
+        for (byte b : serializedValue)
             concatBytes[idx++] = b;
-        }
 
-        String s = new String(serializedValue);
-        System.out.println("s = " + s);
-
-        socketChannel.write(ByteBuffer.wrap(concatBytes));
-
-        // 서버로 입력 정보 송신
-//        String output = cmd + "\n" + key + "\n" + value;
-//        socketChannel.write(charset.encode(output));
-        buf.clear();
-//        System.out.println("\nSend to the server " + GREEN_COLOR + "put(" + key + ", " + value + ")" + COLOR_RESET + " operation");
-
-        int byteCount = socketChannel.read(buf);
-        buf.flip();
-
-
-        byte[] bytes = new byte[byteCount];
-        buf.get(bytes);
-
-        String str = new String(bytes);
-        System.out.println("s = " + str);
-
-//            String input = StandardCharsets.UTF_8.decode(buf).toString();
-        System.out.println("\nServer return " + "[" + GREEN_COLOR + str + COLOR_RESET + "]");
-
+        return concatBytes;
     }
 
 
@@ -155,5 +144,21 @@ public class ClientConnection {
         serializedObj = baos.toByteArray();
 
         return serializedObj;
+    }
+
+    private Object deserialize(byte[] bytes) {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
+            try (ObjectInputStream ois = new ObjectInputStream(bais)) {
+                Object bytesObj = ois.readObject();
+
+                return bytesObj;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return "null";
     }
 }

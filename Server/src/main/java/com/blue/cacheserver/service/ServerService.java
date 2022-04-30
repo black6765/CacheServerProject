@@ -1,7 +1,6 @@
 package com.blue.cacheserver.service;
 
 import com.blue.cacheserver.cache.Cache;
-import com.blue.cacheserver.cache.CacheImpl;
 import com.blue.cacheserver.message.DisconnectException;
 import com.blue.cacheserver.message.ServerException;
 
@@ -25,7 +24,7 @@ public class ServerService {
     private Selector selector;
     private final Charset charset = StandardCharsets.UTF_8;
     private ServerSocketChannel serverSocketChannel;
-    private Cache<String, String> cache;
+    private Cache cache;
     final String DELIMITER = "<=";
 
     /**
@@ -100,7 +99,7 @@ public class ServerService {
         try {
             // 싱글톤 패턴으로 cache 인스턴스를 가져옴
             // 기본 자료형을 <String, String>으로 설정
-            cache = new CacheImpl<>();
+            cache = new Cache();
 
             // Selector를 open
             selector = Selector.open();
@@ -158,10 +157,8 @@ public class ServerService {
             SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
             socketChannel.configureBlocking(false);
             ByteBuffer buf = ByteBuffer.allocate(512);
-
             int byteCount = socketChannel.read(buf);
-            System.out.println("{put]");
-            System.out.println(byteCount);
+
             if (byteCount == -1) {
                 throw new DisconnectException("Close the connection");
             }
@@ -176,41 +173,16 @@ public class ServerService {
 
             for (int i = 0; i < bytes.length; i++) {
                 // 이 조건문은 isSplitFlag() 등 메소드로 변경 예정
-                if (bytes[i] == 60 && bytes[i+1] == 61) {
+                if (bytes[i] == 60 && bytes[i + 1] == 61) {
                     splitIdx[cntDelim++] = i;
                 }
             }
 
             byte[] operationBytes = Arrays.copyOfRange(bytes, 0, splitIdx[0]);
-            byte[] keyBytes;
-            byte[] valueBytes;
 
-            ByteArrayInputStream bais = new ByteArrayInputStream(operationBytes);
-            ObjectInputStream ois = new ObjectInputStream(bais);
-            Object objectMember = ois.readObject();
+            String operation = (String) deserialize(operationBytes);
+            selectOperation(socketChannel, bytes, splitIdx, operation);
 
-
-            String operation = (String) objectMember;
-            System.out.println(operation);
-
-            if ("put".equals(operation)) {
-                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+DELIMITER.length(), splitIdx[1]);
-                valueBytes = Arrays.copyOfRange(bytes, splitIdx[1]+DELIMITER.length(), bytes.length);
-
-                putOperation(socketChannel, keyBytes, valueBytes);
-            } else if ("get".equals(operation)) {
-                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+DELIMITER.length(), bytes.length);
-
-                getOperation(socketChannel, keyBytes);
-            } else if ("remove".equals(operation)) {
-                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0]+DELIMITER.length(), bytes.length);
-
-                removeOperation(socketChannel, keyBytes);
-            } else if ("exit".equals(operation)) {
-                throw new DisconnectException("Close the connection");
-            } else {
-                throw new ServerException("Client request not supported operation");
-            }
         } catch (ServerException e) {
             selectionKey.cancel();
             System.out.println(SERVER_RECEIVE_FAILED_MSG);
@@ -231,34 +203,58 @@ public class ServerService {
         }
     }
 
+    private void selectOperation(SocketChannel socketChannel, byte[] bytes, int[] splitIdx, String operation) throws DisconnectException, ServerException {
+        byte[] keyBytes;
+        byte[] valueBytes;
+
+        if ("put".equals(operation)) {
+            keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), splitIdx[1]);
+            valueBytes = Arrays.copyOfRange(bytes, splitIdx[1] + DELIMITER.length(), bytes.length);
+            putOperation(socketChannel, keyBytes, valueBytes);
+
+        } else if ("get".equals(operation)) {
+            keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), bytes.length);
+            getOperation(socketChannel, keyBytes);
+
+        } else if ("remove".equals(operation)) {
+            keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), bytes.length);
+            removeOperation(socketChannel, keyBytes);
+
+        } else if ("exit".equals(operation)) {
+            throw new DisconnectException("Close the connection");
+
+        } else {
+            throw new ServerException("Client request not supported operation");
+        }
+    }
 
     /**
-     * Remove operation
-     * cache에 주어진 key로 remove 연산 실행
+     * Put operation
+     * cache에 주어진 key와 value로 put 연산 실행
      * param 1. : 클라이언트와의 소켓채널
      * param 2. : 클라이언트로부터 받은 String[] input
-     * return case 1. : get 연산 시에 캐시에 해당 key가 없다면 "null"이 리턴
-     * return case 2. : 기존의 key 값이 있다면 이를 삭제하고, 이에 대한 value를 리턴
+     * return case 1. put 연산 시에 캐시에 해당 key-value 쌍이 없다면 "null"이 리턴
+     * return case 2. 기존의 key 값이 있다면 이를 새로운 value로 갱신하고 기존의 key를 리턴
      */
-    public void removeOperation(SocketChannel socketChannel, byte[] keyBytes) {
+    public void putOperation(SocketChannel socketChannel, byte[] keyBytes, byte[] valueBytes) {
         try {
-//            if (input.length != 2) {
-//                socketChannel.write(charset.encode("Client input invalid argument(s)"));
-//                throw new ServerException("Client input invalid argument(s)");
-//            }
+            byte[] returnVal = cache.put(keyBytes, valueBytes);
+            String returnStr;
 
-//            String str = cache.remove(input[1]);
-//            String returnStr = Objects.requireNonNullElse(str, "null");
+            if (returnVal == null) {
+                socketChannel.write(charset.encode("null"));
+                returnStr = "null";
+            } else {
+                socketChannel.write(ByteBuffer.wrap(returnVal));
+                returnStr = new String(returnVal);
+            }
 
-            // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환
-//            socketChannel.write(charset.encode(returnStr));
+            System.out.println("\n[Put operation success]");
+            System.out.println("<Return>  Return to client = [" + returnStr + "]");
 
-            System.out.println("\n[Remove operation success]");
-//            System.out.println("<Request> Remove key = [" + input[1] + "]");
-//            System.out.println("<Return>  Return to client = [" + returnStr + "]");
-            System.out.println(SERVER_REMOVE_MSG);
+            System.out.println(SERVER_PUT_MSG);
         } catch (Exception e) {
-            System.out.println(SERVER_REMOVE_FAILED_MSG);
+            System.out.println(SERVER_PUT_FAILED_MSG);
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
@@ -299,48 +295,51 @@ public class ServerService {
     }
 
     /**
-     * Put operation
-     * cache에 주어진 key와 value로 put 연산 실행
+     * Remove operation
+     * cache에 주어진 key로 remove 연산 실행
      * param 1. : 클라이언트와의 소켓채널
      * param 2. : 클라이언트로부터 받은 String[] input
-     * return case 1. put 연산 시에 캐시에 해당 key-value 쌍이 없다면 "null"이 리턴
-     * return case 2. 기존의 key 값이 있다면 이를 새로운 value로 갱신하고 기존의 key를 리턴
+     * return case 1. : get 연산 시에 캐시에 해당 key가 없다면 "null"이 리턴
+     * return case 2. : 기존의 key 값이 있다면 이를 삭제하고, 이에 대한 value를 리턴
      */
-    public void putOperation(SocketChannel socketChannel, byte[] keyBytes, byte[] valueBytes) {
+    public void removeOperation(SocketChannel socketChannel, byte[] keyBytes) {
         try {
-//            if (input.length != 3) {
+//            if (input.length != 2) {
 //                socketChannel.write(charset.encode("Client input invalid argument(s)"));
 //                throw new ServerException("Client input invalid argument(s)");
 //            }
 
+//            String str = cache.remove(input[1]);
+//            String returnStr = Objects.requireNonNullElse(str, "null");
 
-//            String str = cache.put(keyBytes, valueBytes);
-            String keyBytesStr = new String(keyBytes);
-            String valueBytesStr = new String(valueBytes);
-
-
-            String returnVal = cache.put(keyBytesStr, valueBytesStr);
-            String returnStr;
             // str이 null일 때 "null"을 반환하고 그 외에는 str을 반환
-            if (returnVal == null) {
-                socketChannel.write(charset.encode("null"));
-                returnStr = "null";
-            } else {
-//                socketChannel.write(ByteBuffer.wrap(returnVal));
-                socketChannel.write(charset.encode(returnVal));
-                returnStr = new String(returnVal);
-            }
+//            socketChannel.write(charset.encode(returnStr));
 
-
-            System.out.println("\n[Put operation success]");
-//            System.out.println("<Request> Put key = [" + input[1] + "]");
-//            System.out.println("<Request> Put value = [" + input[2] + "]");
-            System.out.println("<Return>  Return to client = [" + returnStr + "]");
-            System.out.println(SERVER_PUT_MSG);
-        }  catch (Exception e) {
-            System.out.println(SERVER_PUT_FAILED_MSG);
+            System.out.println("\n[Remove operation success]");
+//            System.out.println("<Request> Remove key = [" + input[1] + "]");
+//            System.out.println("<Return>  Return to client = [" + returnStr + "]");
+            System.out.println(SERVER_REMOVE_MSG);
+        } catch (Exception e) {
+            System.out.println(SERVER_REMOVE_FAILED_MSG);
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
+
+    private Object deserialize(byte[] bytes) {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
+            try (ObjectInputStream ois = new ObjectInputStream(bais)) {
+                Object bytesObj = ois.readObject();
+
+                return bytesObj;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return "null";
+    }
+
 }
