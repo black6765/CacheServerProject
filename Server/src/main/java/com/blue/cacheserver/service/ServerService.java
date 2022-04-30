@@ -25,7 +25,7 @@ public class ServerService {
     private final Charset charset = StandardCharsets.UTF_8;
     private ServerSocketChannel serverSocketChannel;
     private Cache cache;
-    final String DELIMITER = "<=";
+    final String DELIMITER = "\n\n";
 
 
     public void runServer() {
