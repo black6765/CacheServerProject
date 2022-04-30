@@ -7,14 +7,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.blue.cacheserver.message.ErrorMessage.SERVER_CACHE_FULL_MSG;
 import static com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 
-public class Cache {
 
+public class Cache {
     final int MAX_SIZE = 512;
     final int INIT_SIZE = MAX_SIZE / 2;
 
     Map<BytesKey, CacheValue> cacheMemory = new ConcurrentHashMap<>(INIT_SIZE);
 
-    LinkedList<BytesKey> evictionQueue = new LinkedList<>();
+    LinkedList<BytesKey> expireQueue = new LinkedList<>();
 
     public void eviction() {
 //        System.out.println("\n[Eviction start]");
@@ -38,34 +38,39 @@ public class Cache {
             System.out.println(SERVER_CACHE_FULL_MSG);
             eviction();
         }
-
+        
         CacheValue returnVal = cacheMemory.put(new BytesKey(key), new CacheValue(value, Instant.now()));
 
         if (returnVal == null)
             return null;
 
-        System.out.println(returnVal.getValue());
         return returnVal.getValue();
     }
 
-    public byte[] get(BytesKey key) {
+    public byte[] get(byte[] key) {
 //        int idx = evictionQueue.indexOf(key);
 //
 //        if (idx != -1) {
 //            K refreshKey = evictionQueue.remove(idx);
 //            evictionQueue.addLast(refreshKey);
 //        }
-//
-        return cacheMemory.get(key).getValue();
+
+        CacheValue returnVal = cacheMemory.get(new BytesKey(key));
+        if (returnVal == null) return null;
+
+        return returnVal.getValue();
     }
 
-    public byte[] remove(BytesKey key) {
-        int idx = evictionQueue.indexOf(key);
-        if (idx != -1) {
-            evictionQueue.remove(idx);
-        }
+    public byte[] remove(byte[] key) {
+//        int idx = evictionQueue.indexOf(key);
+//        if (idx != -1) {
+//            evictionQueue.remove(idx);
+//        }
 
-        return cacheMemory.remove(key).getValue();
+        CacheValue returnVal = cacheMemory.remove(new BytesKey(key));
+        if (returnVal == null) return null;
+
+        return returnVal.getValue();
     }
 
     public Cache() {
