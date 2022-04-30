@@ -4,8 +4,6 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
@@ -13,7 +11,6 @@ import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILE
 
 public class ClientConnection {
     ByteBuffer buf = ByteBuffer.allocate(512);
-    Charset charset = StandardCharsets.UTF_8;
     SocketChannel socketChannel;
     final String DELIMITER = "\n\n";
 
@@ -43,7 +40,6 @@ public class ClientConnection {
                     break;
                 } else {
                     System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
-                    socketChannel.write(charset.encode(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG));
                 }
             }
         } catch (IOException e) {
@@ -121,6 +117,7 @@ public class ClientConnection {
         final byte[] serializedKey = serialize(key);
         final byte[] serializedValue = serialize(value);
 
+        // Note. 여기서 사이즈를 잘못 지정하면 배열에 남는 공간이 0으로 채워져 연산이 제대로 작동하지 않음
         byte[] concatBytes = new byte[serializedOperation.length +
                 serializedKey.length + serializedValue.length + 2 * (DELIMITER.length())];
 

@@ -49,7 +49,7 @@ public class ServerService {
                         } else if (selectionKey.isReadable()) {
                             receive(selectionKey);
                         } else {
-                            throw new ServerException("Undefined behavior. shutdown server");
+                            throw new IOException();
                         }
 
                         iterator.remove();
@@ -58,18 +58,11 @@ public class ServerService {
                     System.out.println(SERVER_RUN_FAILED_MSG);
                     System.out.println(e.getMessage());
                     e.printStackTrace();
-                } catch (Exception e) {
-                    System.out.println(SERVER_RUN_FAILED_MSG);
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
-                    stopServer();
-                    break;
                 }
             }
         });
         thread.start();
     }
-
 
     public void stopServer() {
         try {
@@ -80,6 +73,7 @@ public class ServerService {
             if (selector != null && selector.isOpen()) {
                 selector.close();
             }
+
             System.out.println(SERVER_STOP_MSG);
         } catch (Exception e) {
             System.out.println(SERVER_STOP_FAILED_MSG);
@@ -91,22 +85,15 @@ public class ServerService {
 
     public ServerService() {
         try {
-            // 싱글톤 패턴으로 cache 인스턴스를 가져옴
-            // 기본 자료형을 <String, String>으로 설정
             cache = new Cache();
-
-            // Selector를 open
             selector = Selector.open();
 
-            // serverSocketChannel과 관련된 세팅
             serverSocketChannel = ServerSocketChannel.open();
             serverSocketChannel.bind(new InetSocketAddress(44001));
-            // serverSocketChannel을 non-blocking 모드로 설정하고, selector에 OP_ACCEPT로 등록함
             serverSocketChannel.configureBlocking(false);
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
             System.out.println(SERVER_START_MSG);
 
-            // 서버 동작
             runServer();
         } catch (IOException e) {
             System.out.println(SERVER_START_FAILED_MSG);
@@ -149,21 +136,21 @@ public class ServerService {
 
             buf.flip();
 
-            byte[] bytes = new byte[byteCount];
-            buf.get(bytes);
+            byte[] bytesBuf = new byte[byteCount];
+            buf.get(bytesBuf);
 
             int[] splitIdx = new int[2];
             int cntDelim = 0;
 
-            for (int i = 0; i < bytes.length; i++) {
-                if (bytes[i] == '\n' && bytes[i + 1] == '\n') {
+            for (int i = 0; i < bytesBuf.length; i++) {
+                if (bytesBuf[i] == '\n' && bytesBuf[i + 1] == '\n') {
                     splitIdx[cntDelim++] = i;
                 }
             }
 
-            final byte[] operationBytes = Arrays.copyOfRange(bytes, 0, splitIdx[0]);
+            final byte[] operationBytes = Arrays.copyOfRange(bytesBuf, 0, splitIdx[0]);
             final String operation = (String) deserialize(operationBytes);
-            selectOP(socketChannel, bytes, splitIdx, operation);
+            selectOP(socketChannel, bytesBuf, splitIdx, operation);
 
         } catch (DisconnectException e) {
             selectionKey.cancel();
@@ -268,7 +255,6 @@ public class ServerService {
 
             System.out.println("<Return>  Return to client = [" + returnStr + "]");
             System.out.println(SERVER_REMOVE_MSG);
-
 
         } catch (Exception e) {
             System.out.println(SERVER_REMOVE_FAILED_MSG);

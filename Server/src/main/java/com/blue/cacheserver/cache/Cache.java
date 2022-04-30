@@ -38,7 +38,7 @@ public class Cache {
             System.out.println(SERVER_CACHE_FULL_MSG);
             eviction();
         }
-        
+
         CacheValue returnVal = cacheMemory.put(new BytesKey(key), new CacheValue(value, Instant.now()));
 
         if (returnVal == null)
