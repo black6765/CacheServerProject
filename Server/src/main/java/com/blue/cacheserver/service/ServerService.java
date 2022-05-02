@@ -149,12 +149,12 @@ public class ServerService {
     public ServerService() {
         try {
             cache = new Cache.Builder()
-                    .maxSize(64)
-                    .initSize(32)
+                    .maxSize(128)
+                    .initSize(64)
                     .expireMilliSecTime(6000)
-                    .expireCheckMilliSecTime(100)
-                    .removeAllExpiredEntryTime(10000)
-                    .expireQueueSize(2)
+                    .expireCheckMilliSecTime(500)
+                    .removeAllExpiredEntryTime(60000)
+                    .expireQueueSize(10)
                     .build();
 
             selector = Selector.open();

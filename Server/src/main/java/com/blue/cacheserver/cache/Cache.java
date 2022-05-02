@@ -17,9 +17,9 @@ public class Cache {
     private long expireCheckSecTime;
     private long removeAllExpiredEntryTime = 0;
     private int expireQueueSize;
-    private final int EVICTION_SAMPLE_SIZE = 5;
 
-    private int curCacaheMemorySize = 0;
+    private final int EVICTION_SAMPLE_SIZE = 5;
+    private int curCacheMemorySize = 0;
 
     private Cache(Builder builder) {
         maxSize = builder.maxSize;
@@ -34,7 +34,7 @@ public class Cache {
         private int maxSize = 128;
         private int initSize = 64;
         private long expireMilliSecTime = 6000;
-        private long expireCheckMilliSecTime = 3000;
+        private long expireCheckMilliSecTime = 500;
         private long removeAllExpiredEntryTime = 0;
         private int expireQueueSize = 10;
 
@@ -101,11 +101,12 @@ public class Cache {
         return expireQueueSize;
     }
 
+
     public void eviction(int extraSize) {
         System.out.println("\n[Eviction start]");
 
         // 캐시 사이즈에 여유가 생길 때 까지 반복
-        while (extraSize + curCacaheMemorySize > maxSize) {
+        while (extraSize + curCacheMemorySize > maxSize) {
             if (expireQueue.isEmpty()) {
 
                 List<BytesKey> bytesKeys = new ArrayList<>(cacheMemory.keySet());
@@ -143,20 +144,21 @@ public class Cache {
 
                 cacheMemory.remove(oldestKey);
 
-                curCacaheMemorySize -= oldestCacheValue.getByteSize();
-                System.out.println(curCacaheMemorySize);
+                curCacheMemorySize -= oldestCacheValue.getByteSize();
+                System.out.println(curCacheMemorySize);
 
                 evictionSampleQueue.clear();
 
             } else {
                 BytesKey expiredKey = expireQueue.pollFirst();
-                curCacaheMemorySize -= cacheMemory.get(expiredKey).getByteSize();
+                curCacheMemorySize -= cacheMemory.get(expiredKey).getByteSize();
                 cacheMemory.remove(expiredKey);
                 System.out.println(expiredKey);
             }
         }
         System.out.println(SERVER_CACHE_EVICTION_MSG);
     }
+
 
     public byte[] put(byte[] key, byte[] value, Instant timeStamp) {
         final int thisSize = key.length + value.length;
@@ -166,9 +168,9 @@ public class Cache {
             return null;
         }
 
-        if (curCacaheMemorySize + thisSize > maxSize) {
+        if (curCacheMemorySize + thisSize > maxSize) {
             System.out.println(SERVER_CACHE_FULL_MSG);
-            eviction(curCacaheMemorySize + thisSize - maxSize);
+            eviction(curCacheMemorySize + thisSize - maxSize);
         }
 
         BytesKey putKey = new BytesKey(key);
@@ -176,12 +178,12 @@ public class Cache {
         CacheValue returnValue = cacheMemory.put(putKey, putValue);
 
         if (returnValue == null) {
-            curCacaheMemorySize += thisSize;
+            curCacheMemorySize += thisSize;
             return null;
         }
 
         // 새로 갱신된 value의 크기를 더하고, 이전 value의 크기를 뺌
-        curCacaheMemorySize = curCacaheMemorySize + putValue.getByteSize() - returnValue.getByteSize();
+        curCacheMemorySize = curCacheMemorySize + putValue.getByteSize() - returnValue.getByteSize();
 
         if (returnValue.isExpired()) {
             expireQueue.remove(putKey);
@@ -198,6 +200,7 @@ public class Cache {
         return returnValue.getValue();
     }
 
+
     public byte[] get(byte[] key, Instant timeStamp) {
         CacheValue returnVal = cacheMemory.get(new BytesKey(key));
 
@@ -206,7 +209,7 @@ public class Cache {
         }
 
         if (returnVal.isExpired()) {
-            curCacaheMemorySize -= returnVal.getByteSize();
+            curCacheMemorySize -= returnVal.getByteSize();
             BytesKey removeKey = new BytesKey(key);
             cacheMemory.remove(removeKey);
             expireQueue.remove(removeKey);
@@ -231,7 +234,7 @@ public class Cache {
             expireQueue.remove(removeKey);
         }
 
-        curCacaheMemorySize -= returnVal.getByteSize();
+        curCacheMemorySize -= returnVal.getByteSize();
 
         if (returnVal.isExpired()) {
             expireQueue.remove(removeKey);
@@ -240,6 +243,7 @@ public class Cache {
 
         return returnVal.getValue();
     }
+
 
     public int removeAllExpiredEntry() {
         int removedSize = 0;
@@ -250,13 +254,13 @@ public class Cache {
             if (entryValue.isExpired()) {
                 cacheMemory.remove(entryKey);
                 expireQueue.clear();
-                curCacaheMemorySize -= entryValue.getByteSize();
+                curCacheMemorySize -= entryValue.getByteSize();
                 removedSize += entryValue.getByteSize();
             }
         }
 
         System.out.println("Remove all expired entries. " + removedSize + " bytes removed");
-        return curCacaheMemorySize;
+        return curCacheMemorySize;
     }
 
 }

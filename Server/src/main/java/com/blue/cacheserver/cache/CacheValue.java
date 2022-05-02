@@ -11,7 +11,6 @@ public class CacheValue {
     private boolean expired;
 
 
-
     public CacheValue(byte[] value, Instant instant, int byteSize) {
         this.value = Arrays.copyOf(value, value.length);
         this.timeStamp = instant;
