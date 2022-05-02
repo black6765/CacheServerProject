@@ -3,18 +3,57 @@ package com.blue.cacheserver.cache;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static com.blue.cacheserver.message.ErrorMessage.SERVER_CACHE_FULL_MSG;
-import static com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 
 
 public class Cache {
-    final int MAX_SIZE = 512;
-    final int INIT_SIZE = MAX_SIZE / 2;
+    private final int maxSize;
+    private int initSize;
+    private int expireTimeMilliSec;
 
-    Map<BytesKey, CacheValue> cacheMemory = new ConcurrentHashMap<>(INIT_SIZE);
+    private Cache(Builder builder) {
+        maxSize = builder.maxSize;
+        initSize = builder.initSize;
+        expireTimeMilliSec = builder.expireTimeMilliSec;
+    }
 
-    LinkedList<BytesKey> expireQueue = new LinkedList<>();
+    public static class Builder {
+        private int maxSize = 128;
+        private int initSize = 64;
+        private int expireTimeMilliSec = 60000;
+
+        public Builder maxSize(int val) {
+            maxSize = val;
+            return this;
+        }
+
+        public Builder initSize(int val) {
+            initSize = val;
+            return this;
+        }
+
+        public Builder expireTimeMilliSec(int val) {
+            expireTimeMilliSec = val;
+            return this;
+        }
+
+        public Cache build() {
+            return new Cache(this);
+        }
+    }
+
+    Map<BytesKey, CacheValue> cacheMemory = new ConcurrentHashMap<>(initSize);
+    Deque<BytesKey> expireQueue = new ConcurrentLinkedDeque<>();
+
+    public Map<BytesKey, CacheValue> getCacheMemory() {
+        return cacheMemory;
+    }
+
+    public Deque<BytesKey> getExpireQueue() {
+        return expireQueue;
+    }
 
     public void eviction() {
 //        System.out.println("\n[Eviction start]");
@@ -34,7 +73,7 @@ public class Cache {
     public byte[] put(byte[] key, byte[] value) {
         final int thisSize = key.length + value.length;
 
-        if (cacheMemory.size() + thisSize >= MAX_SIZE) {
+        if (cacheMemory.size() + thisSize >= maxSize) {
             System.out.println(SERVER_CACHE_FULL_MSG);
             eviction();
         }
@@ -71,9 +110,5 @@ public class Cache {
         if (returnVal == null) return null;
 
         return returnVal.getValue();
-    }
-
-    public Cache() {
-
     }
 }

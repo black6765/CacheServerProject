@@ -20,12 +20,12 @@ import static com.blue.cacheserver.message.ErrorMessage.*;
 import static com.blue.cacheserver.message.Message.*;
 
 public class ServerService {
+    private final Charset charset = StandardCharsets.UTF_8;
+    private final String DELIMITER = "\n\n";
 
     private Selector selector;
-    private final Charset charset = StandardCharsets.UTF_8;
     private ServerSocketChannel serverSocketChannel;
     private Cache cache;
-    final String DELIMITER = "\n\n";
 
 
     public void runServer() {
@@ -85,7 +85,7 @@ public class ServerService {
 
     public ServerService() {
         try {
-            cache = new Cache();
+            cache = new Cache.Builder().maxSize(64).initSize(32).expireTimeMilliSec(60000).build();
             selector = Selector.open();
 
             serverSocketChannel = ServerSocketChannel.open();
@@ -206,6 +206,7 @@ public class ServerService {
                 returnStr = new String(returnVal);
             }
 
+            // used to debug. It will be removed.
             System.out.println("<Return>  Return to client = [" + returnStr + "]");
             System.out.println(SERVER_PUT_MSG);
 
