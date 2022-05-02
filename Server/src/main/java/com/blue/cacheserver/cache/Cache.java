@@ -89,31 +89,19 @@ public class Cache {
         return expireQueueSize;
     }
 
-    // extraSize 쪽 변경필요.
     public void eviction(int extraSize) {
         System.out.println("\n[Eviction start]");
 
+        // 캐시 사이즈에 여유가 생길 때 까지 반복
         while (extraSize + curCacaheMemorySize > maxSize) {
             if (expireQueue.isEmpty()) {
 
                 List<BytesKey> bytesKeys = new ArrayList<>(cacheMemory.keySet());
 
                 // 샘플을 Math.min(5, curSize)개 만들 때 까지 while (true)
-                // 각 샘플을 리스트로 새로운 리스트로 추가
-                // 이때 샘플은 extraSize - randomCacheValue.getByteSize() < maxSize 조건을 만족시켜야함
                 // 샘플 리스트에서 timeStamp가 가장 오래된 것을 최종적으로 삭제
-                // ! 랜덤으로 샘플링할 필요가 있을까?
-                // ! 그냥 작은 사이즈의 큐를 두고 가장 오래된 타임스탬프를 관리하면...
-                // ! 처음에 오래된 5개가 쌓인 후 eviction 될 떄 까지 갱신되지 않다가
-                // ! 이빅션된 후에 새로운 값이 들어오기 떄문에 중간의 데이터들은 반영안되는 문제
                 int repeatNum = Math.min(EVICTION_SAMPLE_SIZE, cacheMemory.size());
                 int repeatCount = 0;
-
-                // 일반적으로 참이 될 수 없는 조건문
-                if (cacheMemory.isEmpty()) {
-                    System.out.println(cacheMemory.isEmpty());
-                    break;
-                }
 
                 while (true) {
                     if (repeatCount == repeatNum) {
@@ -149,8 +137,8 @@ public class Cache {
                 cacheMemory.remove(oldestKey);
 
                 curCacaheMemorySize -= oldestCacheValue.getByteSize();
-//                System.out.println("oldestCacheValue = " + oldestCacheValue.getByteSize());
-//                System.out.println(curCacaheMemorySize);
+                System.out.println("oldestCacheValue = " + oldestCacheValue.getByteSize());
+                System.out.println(curCacaheMemorySize);
 
                 evictionSampleQueue.clear();
 
@@ -195,6 +183,7 @@ public class Cache {
             return null;
         }
 
+        // 새로 갱신된 value의 크기를 더하고, 이전 value의 크기를 뺌
         curCacaheMemorySize = curCacaheMemorySize + putValue.getByteSize() - returnValue.getByteSize();
 
         if (returnValue.isExpired()) {
@@ -246,6 +235,11 @@ public class Cache {
         }
 
         curCacaheMemorySize -= returnVal.getByteSize();
+
+        if (returnVal.isExpired()) {
+            expireQueue.remove(removeKey);
+            return "Expired key".getBytes(StandardCharsets.UTF_8);
+        }
 
         return returnVal.getValue();
     }
