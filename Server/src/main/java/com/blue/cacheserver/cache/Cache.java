@@ -229,7 +229,7 @@ public class Cache {
         return returnVal.getValue();
     }
 
-    public int removeExpiredEntrys() {
+    public int removeAllExpiredEntry() {
         for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : this.getCacheMemory().entrySet()) {
             BytesKey entryKey = entry.getKey();
             CacheValue entryValue = entry.getValue();
