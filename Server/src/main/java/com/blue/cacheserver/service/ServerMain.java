@@ -17,9 +17,8 @@ public class ServerMain {
                 if ("stop".equals(cmd)) {
                     serverService.stopServer();
                     break;
-                } else {
-                    continue;
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }

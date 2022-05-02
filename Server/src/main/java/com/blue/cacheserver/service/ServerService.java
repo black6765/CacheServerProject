@@ -1,6 +1,8 @@
 package com.blue.cacheserver.service;
 
+import com.blue.cacheserver.cache.BytesKey;
 import com.blue.cacheserver.cache.Cache;
+import com.blue.cacheserver.cache.CacheValue;
 import com.blue.cacheserver.message.DisconnectException;
 import com.blue.cacheserver.message.ServerException;
 
@@ -12,9 +14,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.blue.cacheserver.message.ErrorMessage.*;
 import static com.blue.cacheserver.message.Message.*;
@@ -29,7 +33,7 @@ public class ServerService {
 
 
     public void runServer() {
-        Thread thread = new Thread(() -> {
+        Thread serverThread = new Thread(() -> {
             while (true) {
                 try {
                     int keyCount = selector.select();
@@ -61,7 +65,33 @@ public class ServerService {
                 }
             }
         });
-        thread.start();
+        serverThread.start();
+
+        Thread evictionThread = new Thread(() -> {
+            while (true) {
+                try {
+                    for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : cache.getCacheMemory().entrySet()) {
+                        BytesKey entryKey = entry.getKey();
+                        CacheValue entryValue = entry.getValue();
+
+                        long elapsedTime = Instant.now().toEpochMilli() - entryValue.getTimeStamp().toEpochMilli();
+
+                        if (!entryValue.isExpired() && (elapsedTime >= cache.getExpireMilliSecTime())) {
+                            entryValue.setExpired(true);
+                            cache.getExpireQueue().offerLast(entryKey);
+                            System.out.println("DEBUG: " + entryValue.getValue().toString() + " is expired");
+
+                        }
+                    }
+                    Thread.sleep(cache.getExpireCheckSecTime());
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        evictionThread.start();
     }
 
     public void stopServer() {
@@ -85,7 +115,14 @@ public class ServerService {
 
     public ServerService() {
         try {
-            cache = new Cache.Builder().maxSize(64).initSize(32).expireTimeMilliSec(60000).build();
+            cache = new Cache.Builder()
+                    .maxSize(64)
+                    .initSize(32)
+                    .expireMilliSecTime(6000)
+                    .expireCheckMilliSecTime(3000)
+                    .expireQueueSize(10)
+                    .build();
+
             selector = Selector.open();
 
             serverSocketChannel = ServerSocketChannel.open();
@@ -195,7 +232,7 @@ public class ServerService {
 
     public void putOperation(SocketChannel socketChannel, byte[] keyBytes, byte[] valueBytes) {
         try {
-            byte[] returnVal = cache.put(keyBytes, valueBytes);
+            byte[] returnVal = cache.put(keyBytes, valueBytes, Instant.now());
             String returnStr;
 
             if (returnVal == null) {
@@ -220,7 +257,7 @@ public class ServerService {
 
     private void getOperation(SocketChannel socketChannel, byte[] keyBytes) {
         try {
-            byte[] returnVal = cache.get(keyBytes);
+            byte[] returnVal = cache.get(keyBytes, Instant.now());
             String returnStr;
 
             if (returnVal == null) {
@@ -243,7 +280,7 @@ public class ServerService {
 
     private void removeOperation(SocketChannel socketChannel, byte[] keyBytes) {
         try {
-            byte[] returnVal = cache.remove(keyBytes);
+            byte[] returnVal = cache.remove(keyBytes, Instant.now());
             String returnStr;
 
             if (returnVal == null) {

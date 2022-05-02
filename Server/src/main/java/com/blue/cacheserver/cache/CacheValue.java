@@ -7,11 +7,15 @@ import java.util.Arrays;
 public class CacheValue {
     private byte[] value;
     private Instant timeStamp;
+    private int byteSize;
     private boolean expired;
 
-    public CacheValue(byte[] value, Instant instant) {
+
+
+    public CacheValue(byte[] value, Instant instant, int byteSize) {
         this.value = Arrays.copyOf(value, value.length);
         this.timeStamp = instant;
+        this.byteSize = byteSize;
         this.expired = false;
     }
 
@@ -19,8 +23,8 @@ public class CacheValue {
         return value;
     }
 
-    public void setValue(byte[] value) {
-        this.value = value;
+    public int getByteSize() {
+        return byteSize;
     }
 
     public Instant getTimeStamp() {
