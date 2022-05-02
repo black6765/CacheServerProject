@@ -97,12 +97,18 @@ public class ClientConnection {
             byte[] bytes = new byte[byteCount];
             buf.get(bytes);
 
-            String returnVal;
-            if ("null".equals((new String(bytes))))
-                returnVal = "null";
-            else
-                returnVal = (String) deserialize(bytes);
 
+
+            String bytesString = new String(bytes);
+            String returnVal;
+            if ("null".equals(bytesString)) {
+                returnVal = "null";
+            } else if ("Expired key".equals(bytesString)) {
+                returnVal = "Expired key";
+            }
+            else {
+                returnVal = (String) deserialize(bytes);
+            }
             System.out.println("Server return: " + returnVal);
 
         } catch (Exception e) {

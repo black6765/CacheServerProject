@@ -16,6 +16,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,11 +79,21 @@ public class ServerService {
 
                         if (!entryValue.isExpired() && (elapsedTime >= cache.getExpireMilliSecTime())) {
                             entryValue.setExpired(true);
+
+                            Deque<BytesKey> expiredQueue = cache.getExpireQueue();
+                            if (expiredQueue.size() == cache.getExpireQueueSize()) {
+                                System.out.println("DEBUG: " + expiredQueue.pollFirst() + " is out of Queue");
+//                                expiredQueue.pollFirst();
+
+                            }
+
                             cache.getExpireQueue().offerLast(entryKey);
                             System.out.println("DEBUG: " + entryValue.getValue().toString() + " is expired");
 
                         }
                     }
+
+                    System.out.println(cache.getExpireQueue());
                     Thread.sleep(cache.getExpireCheckSecTime());
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
@@ -120,7 +131,7 @@ public class ServerService {
                     .initSize(32)
                     .expireMilliSecTime(6000)
                     .expireCheckMilliSecTime(3000)
-                    .expireQueueSize(10)
+                    .expireQueueSize(2)
                     .build();
 
             selector = Selector.open();
@@ -238,7 +249,10 @@ public class ServerService {
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));
                 returnStr = "null";
-            } else {
+            } else if ("Expired key".equals(new String(returnVal))) {
+                socketChannel.write(charset.encode("Expired key"));
+                returnStr = "Expired key";
+            }else {
                 socketChannel.write(ByteBuffer.wrap(returnVal));
                 returnStr = new String(returnVal);
             }
