@@ -15,6 +15,7 @@ public class Cache {
     private int initSize;
     private long expireMilliSecTime;
     private long expireCheckSecTime;
+    private long removeAllExpiredEntryTime = 0;
     private int expireQueueSize;
     private final int EVICTION_SAMPLE_SIZE = 5;
 
@@ -23,16 +24,18 @@ public class Cache {
     private Cache(Builder builder) {
         maxSize = builder.maxSize;
         initSize = builder.initSize;
-        expireMilliSecTime = builder.expireRegistMilliSecTime;
+        expireMilliSecTime = builder.expireMilliSecTime;
         expireCheckSecTime = builder.expireCheckMilliSecTime;
+        removeAllExpiredEntryTime = builder.removeAllExpiredEntryTime;
         expireQueueSize = builder.expireQueueSize;
     }
 
     public static class Builder {
         private int maxSize = 128;
         private int initSize = 64;
-        private long expireRegistMilliSecTime = 6000;
+        private long expireMilliSecTime = 6000;
         private long expireCheckMilliSecTime = 3000;
+        private long removeAllExpiredEntryTime = 0;
         private int expireQueueSize = 10;
 
         public Builder maxSize(int val) {
@@ -46,12 +49,17 @@ public class Cache {
         }
 
         public Builder expireMilliSecTime(long val) {
-            expireRegistMilliSecTime = val;
+            expireMilliSecTime = val;
             return this;
         }
 
         public Builder expireCheckMilliSecTime(long val) {
             expireCheckMilliSecTime = val;
+            return this;
+        }
+
+        public Builder removeAllExpiredEntryTime(long val) {
+            removeAllExpiredEntryTime = val;
             return this;
         }
 
@@ -75,6 +83,10 @@ public class Cache {
 
     public long getExpireCheckSecTime() {
         return expireCheckSecTime;
+    }
+
+    public long getRemoveAllExpiredEntryTime() {
+        return removeAllExpiredEntryTime;
     }
 
     public Map<BytesKey, CacheValue> getCacheMemory() {
@@ -230,6 +242,7 @@ public class Cache {
     }
 
     public int removeAllExpiredEntry() {
+        int removedSize = 0;
         for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : this.getCacheMemory().entrySet()) {
             BytesKey entryKey = entry.getKey();
             CacheValue entryValue = entry.getValue();
@@ -238,9 +251,11 @@ public class Cache {
                 cacheMemory.remove(entryKey);
                 expireQueue.clear();
                 curCacaheMemorySize -= entryValue.getByteSize();
+                removedSize += entryValue.getByteSize();
             }
         }
 
+        System.out.println("Remove all expired entries. " + removedSize + " bytes removed");
         return curCacaheMemorySize;
     }
 

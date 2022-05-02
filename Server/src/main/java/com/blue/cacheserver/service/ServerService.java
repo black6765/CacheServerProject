@@ -106,6 +106,23 @@ public class ServerService {
         });
 
         evictionThread.start();
+
+        if (cache.getRemoveAllExpiredEntryTime() != 0) {
+            Thread removeAllExpiredEntryThread = new Thread(() -> {
+                while (runThread) {
+                    try {
+                        Thread.sleep(cache.getRemoveAllExpiredEntryTime());
+                        cache.removeAllExpiredEntry();
+
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            removeAllExpiredEntryThread.start();
+        }
     }
 
     public void stopServer() {
@@ -136,6 +153,7 @@ public class ServerService {
                     .initSize(32)
                     .expireMilliSecTime(6000)
                     .expireCheckMilliSecTime(100)
+                    .removeAllExpiredEntryTime(10000)
                     .expireQueueSize(2)
                     .build();
 

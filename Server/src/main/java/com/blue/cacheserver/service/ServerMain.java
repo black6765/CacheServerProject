@@ -21,7 +21,6 @@ public class ServerMain {
 
                 if ("2".equals(cmd)) {
                     int curCacheMemorySize = serverService.getCache().removeAllExpiredEntry();
-                    System.out.println("Removed all expired entries");
                     System.out.println("Current cacheMemorySize is " + curCacheMemorySize);
                 }
 
