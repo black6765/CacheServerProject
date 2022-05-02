@@ -32,10 +32,16 @@ public class ServerService {
     private ServerSocketChannel serverSocketChannel;
     private Cache cache;
 
+    private boolean runThread = true;
 
-    public void runServer() {
+    public Cache getCache() {
+        return cache;
+    }
+
+
+    private void runServer() {
         Thread serverThread = new Thread(() -> {
-            while (true) {
+            while (runThread) {
                 try {
                     int keyCount = selector.select();
 
@@ -66,10 +72,11 @@ public class ServerService {
                 }
             }
         });
+
         serverThread.start();
 
         Thread evictionThread = new Thread(() -> {
-            while (true) {
+            while (runThread) {
                 try {
                     for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : cache.getCacheMemory().entrySet()) {
                         BytesKey entryKey = entry.getKey();
@@ -81,19 +88,15 @@ public class ServerService {
                             entryValue.setExpired(true);
 
                             Deque<BytesKey> expiredQueue = cache.getExpireQueue();
-                            if (expiredQueue.size() == cache.getExpireQueueSize()) {
-                                System.out.println("DEBUG: " + expiredQueue.pollFirst() + " is out of Queue");
-//                                expiredQueue.pollFirst();
-
+                            if (expiredQueue.size() >= cache.getExpireQueueSize()) {
+                                expiredQueue.pollFirst();
                             }
 
                             cache.getExpireQueue().offerLast(entryKey);
-                            System.out.println("DEBUG: " + entryValue.getValue().toString() + " is expired");
-
+                            System.out.println(cache.getExpireQueue());
                         }
                     }
 
-                    System.out.println(cache.getExpireQueue());
                     Thread.sleep(cache.getExpireCheckSecTime());
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
@@ -115,6 +118,8 @@ public class ServerService {
                 selector.close();
             }
 
+            runThread = false;
+
             System.out.println(SERVER_STOP_MSG);
         } catch (Exception e) {
             System.out.println(SERVER_STOP_FAILED_MSG);
@@ -130,7 +135,7 @@ public class ServerService {
                     .maxSize(64)
                     .initSize(32)
                     .expireMilliSecTime(6000)
-                    .expireCheckMilliSecTime(3000)
+                    .expireCheckMilliSecTime(100)
                     .expireQueueSize(2)
                     .build();
 
@@ -292,6 +297,7 @@ public class ServerService {
         }
     }
 
+
     private void removeOperation(SocketChannel socketChannel, byte[] keyBytes) {
         try {
             byte[] returnVal = cache.remove(keyBytes, Instant.now());
@@ -314,6 +320,7 @@ public class ServerService {
             e.printStackTrace();
         }
     }
+
 
     private Object deserialize(byte[] bytes) throws Exception {
         ByteArrayInputStream bais = new ByteArrayInputStream(bytes);

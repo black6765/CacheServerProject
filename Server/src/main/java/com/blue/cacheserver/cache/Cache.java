@@ -98,7 +98,7 @@ public class Cache {
 
                 List<BytesKey> bytesKeys = new ArrayList<>(cacheMemory.keySet());
 
-                // 샘플을 Math.min(5, curSize)개 만들 때 까지 while (true)
+                // 샘플을 Math.min(EVICTION_SAMPLE_SIZE, 현재 cacheMemory 원소 개수)개 만들 때 까지 while (true)
                 // 샘플 리스트에서 timeStamp가 가장 오래된 것을 최종적으로 삭제
                 int repeatNum = Math.min(EVICTION_SAMPLE_SIZE, cacheMemory.size());
                 int repeatCount = 0;
@@ -110,17 +110,14 @@ public class Cache {
                     Random random = new Random();
                     BytesKey randomKey = bytesKeys.get(random.nextInt(bytesKeys.size()));
 
-                    // 이 부분에서 계속 반복되는 것으로 확인 고쳐야함.
+                    // 이미 선택된 값이 다시 선택될 경우
                     if (evictionSampleQueue.contains(randomKey)) {
                         continue;
                     }
 
                     evictionSampleQueue.offerLast(randomKey);
                     repeatCount++;
-
                 }
-
-//                System.out.println("DEBUG: evictionSampleQueue = " + evictionSampleQueue);
 
                 BytesKey oldestKey = evictionSampleQueue.pollFirst();
                 CacheValue oldestCacheValue = cacheMemory.get(oldestKey);
@@ -132,29 +129,21 @@ public class Cache {
                     }
                 }
 
-
-//                System.out.println("oldestKey = " + oldestKey);
                 cacheMemory.remove(oldestKey);
 
                 curCacaheMemorySize -= oldestCacheValue.getByteSize();
-                System.out.println("oldestCacheValue = " + oldestCacheValue.getByteSize());
                 System.out.println(curCacaheMemorySize);
 
                 evictionSampleQueue.clear();
 
             } else {
-
                 BytesKey expiredKey = expireQueue.pollFirst();
                 curCacaheMemorySize -= cacheMemory.get(expiredKey).getByteSize();
                 cacheMemory.remove(expiredKey);
-                System.out.println("Debug: expiredKey = " + expiredKey);
-
-                System.out.println("- Removed key -");
                 System.out.println(expiredKey);
-                System.out.println(SERVER_CACHE_EVICTION_MSG);
             }
         }
-        return;
+        System.out.println(SERVER_CACHE_EVICTION_MSG);
     }
 
     public byte[] put(byte[] key, byte[] value, Instant timeStamp) {
@@ -165,11 +154,7 @@ public class Cache {
             return null;
         }
 
-        System.out.println("DEBUG: thisSize = " + thisSize);
-        System.out.println("DEBUG: curCacheMemorySize = " + curCacaheMemorySize);
-
         if (curCacaheMemorySize + thisSize > maxSize) {
-            System.out.println(curCacaheMemorySize + thisSize);
             System.out.println(SERVER_CACHE_FULL_MSG);
             eviction(curCacaheMemorySize + thisSize - maxSize);
         }
@@ -243,4 +228,20 @@ public class Cache {
 
         return returnVal.getValue();
     }
+
+    public int removeExpiredEntrys() {
+        for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : this.getCacheMemory().entrySet()) {
+            BytesKey entryKey = entry.getKey();
+            CacheValue entryValue = entry.getValue();
+
+            if (entryValue.isExpired()) {
+                cacheMemory.remove(entryKey);
+                expireQueue.clear();
+                curCacaheMemorySize -= entryValue.getByteSize();
+            }
+        }
+
+        return curCacaheMemorySize;
+    }
+
 }

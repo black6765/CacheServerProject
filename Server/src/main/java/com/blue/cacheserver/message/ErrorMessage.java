@@ -13,7 +13,4 @@ public class ErrorMessage {
     public static final String SERVER_RECEIVE_FAILED_MSG = YELLOW_COLOR + "[INFO] Server receive method failed" + COLOR_RESET;
     public static final String SERVER_CACHE_FULL_MSG = YELLOW_COLOR + "[INFO] Client request put operation. but cache memory is full" + COLOR_RESET;
     public static final String SERVER_CLIENT_DISCONNECT_MSG = YELLOW_COLOR + "[INFO] Client disconnected" + COLOR_RESET;
-    public static final String SERVER_CLIENT_OBJECT_CONSTRUCT_FAILED_MSG = YELLOW_COLOR + "[INFO] Server failed to construct Client object" + COLOR_RESET;
-
-
 }

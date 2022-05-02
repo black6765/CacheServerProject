@@ -14,9 +14,15 @@ public class ServerMain {
             try {
                 String cmd = br.readLine();
 
-                if ("stop".equals(cmd)) {
+                if ("1".equals(cmd)) {
                     serverService.stopServer();
                     break;
+                }
+
+                if ("2".equals(cmd)) {
+                    int curCacheMemorySize = serverService.getCache().removeExpiredEntrys();
+                    System.out.println("Removed all expired entrys");
+                    System.out.println("Current cacheMemorySize is " + curCacheMemorySize);
                 }
 
             } catch (IOException e) {
