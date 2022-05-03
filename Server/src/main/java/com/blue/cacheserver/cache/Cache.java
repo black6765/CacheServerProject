@@ -18,7 +18,6 @@ public class Cache {
     private final long removeAllExpiredEntryTime;
     private final int expireQueueSize;
 
-    private final int EVICTION_SAMPLE_SIZE = 5;
     private int curCacheMemorySize = 0;
 
     Map<BytesKey, CacheValue> cacheMemory = new ConcurrentHashMap<>(initSize);
@@ -114,6 +113,7 @@ public class Cache {
 
                 // 샘플을 Math.min(EVICTION_SAMPLE_SIZE, 현재 cacheMemory 원소 개수)개 만들 때 까지 while (true)
                 // 샘플 리스트에서 timeStamp가 가장 오래된 것을 최종적으로 삭제
+                final int EVICTION_SAMPLE_SIZE = 5;
                 int repeatNum = Math.min(EVICTION_SAMPLE_SIZE, cacheMemory.size());
                 int repeatCount = 0;
 
@@ -219,17 +219,17 @@ public class Cache {
         return returnVal.getValue();
     }
 
-    // remove 시에 expireQueue에서도 지워줘야 함
-    public byte[] remove(byte[] key, Instant timeStamp) {
+
+    public byte[] remove(byte[] key) {
         BytesKey removeKey = new BytesKey(key);
         CacheValue returnVal = cacheMemory.remove(removeKey);
 
         if (returnVal == null) {
             return null;
         }
+        curCacheMemorySize -= returnVal.getByteSize();
 
         expireQueue.remove(removeKey);
-        curCacheMemorySize -= returnVal.getByteSize();
 
         if (returnVal.isExpired()) {
             return "Expired key".getBytes(StandardCharsets.UTF_8);

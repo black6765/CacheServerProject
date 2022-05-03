@@ -29,7 +29,6 @@ import static com.blue.cacheserver.message.Message.*;
 
 public class ServerService {
     private final Charset charset = StandardCharsets.UTF_8;
-    private final String DELIMITER = "\n\n";
 
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
@@ -158,11 +157,11 @@ public class ServerService {
     public ServerService() {
         try {
             cache = new Cache.Builder()
-                    .maxSize(128)
+                    .maxSize(81920)
                     .initSize(64)
-                    .expireMilliSecTime(6000)
+                    .expireMilliSecTime(10)
                     .expireCheckMilliSecTime(500)
-                    .removeAllExpiredEntryTime(15000)
+                    .removeAllExpiredEntryTime(30000)
                     .expireQueueSize(10)
                     .build();
 
@@ -250,6 +249,7 @@ public class ServerService {
         try {
             byte[] keyBytes;
             byte[] valueBytes;
+            final String DELIMITER = "\n\n";
 
             if ("put".equals(op)) {
                 keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), splitIdx[1]);
@@ -289,10 +289,8 @@ public class ServerService {
                 returnStr = new String(returnVal);
             }
 
-            // used to debug. It will be removed.
-            System.out.println("<Return>  Return to client = [" + returnStr + "]");
+            System.out.println("Return to client = [" + returnStr + "]");
             System.out.println(SERVER_PUT_MSG);
-
         } catch (Exception e) {
             System.out.println(SERVER_PUT_FAILED_MSG);
             System.out.println(e.getMessage());
@@ -314,7 +312,7 @@ public class ServerService {
                 returnStr = new String(returnVal);
             }
 
-            System.out.println("<Return>  Return to client = [" + returnStr + "]");
+            System.out.println("Return to client = [" + returnStr + "]");
             System.out.println(SERVER_GET_MSG);
 
         } catch (Exception e) {
@@ -327,7 +325,7 @@ public class ServerService {
 
     private void removeOperation(SocketChannel socketChannel, byte[] keyBytes) {
         try {
-            byte[] returnVal = cache.remove(keyBytes, Instant.now());
+            byte[] returnVal = cache.remove(keyBytes);
             String returnStr;
 
             if (returnVal == null) {
@@ -338,7 +336,7 @@ public class ServerService {
                 returnStr = new String(returnVal);
             }
 
-            System.out.println("<Return>  Return to client = [" + returnStr + "]");
+            System.out.println("Return to client = [" + returnStr + "]");
             System.out.println(SERVER_REMOVE_MSG);
 
         } catch (Exception e) {
