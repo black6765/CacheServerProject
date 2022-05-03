@@ -181,7 +181,7 @@ public class Cache {
 
         if (returnValue.isExpired()) {
             expireQueue.remove(putKey);
-            return returnValue.getTimeStamp().toString().getBytes(StandardCharsets.UTF_8);
+            return returnValue.getExpireTimeStamp().toString().getBytes(StandardCharsets.UTF_8);
         }
 
         if (timeStamp.isBefore(returnValue.getTimeStamp())) {
@@ -204,7 +204,7 @@ public class Cache {
             BytesKey removeKey = new BytesKey(key);
             cacheMemory.remove(removeKey);
             expireQueue.remove(removeKey);
-            return returnValue.getTimeStamp().toString().getBytes(StandardCharsets.UTF_8);
+            return returnValue.getExpireTimeStamp().toString().getBytes(StandardCharsets.UTF_8);
         }
 
         returnValue.setTimeStamp(timeStamp);
@@ -224,7 +224,7 @@ public class Cache {
         expireQueue.remove(removeKey);
 
         if (returnValue.isExpired()) {
-            return returnValue.getTimeStamp().toString().getBytes(StandardCharsets.UTF_8);
+            return returnValue.getExpireTimeStamp().toString().getBytes(StandardCharsets.UTF_8);
         }
 
         return returnValue.getValue();

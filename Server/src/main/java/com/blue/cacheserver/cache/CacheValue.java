@@ -8,6 +8,9 @@ public class CacheValue {
     private final int byteSize;
     private Instant timeStamp;
     private boolean expired;
+    private Instant expireTimeStamp;
+
+
 
     public CacheValue(byte[] value, Instant instant, int byteSize) {
         this.value = Arrays.copyOf(value, value.length);
@@ -38,5 +41,13 @@ public class CacheValue {
 
     public void setExpired(boolean expired) {
         this.expired = expired;
+    }
+
+    public Instant getExpireTimeStamp() {
+        return expireTimeStamp;
+    }
+
+    public void setExpireTimeStamp(Instant expireTimeStamp) {
+        this.expireTimeStamp = expireTimeStamp;
     }
 }

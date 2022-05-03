@@ -79,7 +79,7 @@ public class ServerService {
         serverThread.setName("runServerThread");
         serverThread.start();
 
-        Runnable evictionRunnable = () -> {
+        Runnable expireRunnable = () -> {
             try {
                 for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : cache.getCacheMemory().entrySet()) {
                     BytesKey entryKey = entry.getKey();
@@ -89,6 +89,7 @@ public class ServerService {
 
                     if (!entryValue.isExpired() && (elapsedTime >= cache.getExpireMilliSecTime())) {
                         entryValue.setExpired(true);
+                        entryValue.setExpireTimeStamp(Instant.now());
 
                         Deque<BytesKey> expiredQueue = cache.getExpireQueue();
                         if (expiredQueue.size() >= cache.getExpireQueueSize()) {
@@ -96,7 +97,6 @@ public class ServerService {
                         }
 
                         cache.getExpireQueue().offerLast(entryKey);
-//                        System.out.println(cache.getExpireQueue());
                     }
                 }
             } catch (Exception e) {
@@ -106,7 +106,7 @@ public class ServerService {
         };
 
         scheduleService.scheduleAtFixedRate(
-                evictionRunnable,
+                expireRunnable,
                 0,
                 cache.getExpireCheckSecTime(),
                 TimeUnit.MILLISECONDS);
@@ -156,7 +156,7 @@ public class ServerService {
                     .maxSize(81920)
                     .initSize(64)
                     .expireMilliSecTime(6000)
-                    .expireCheckMilliSecTime(500)
+                    .expireCheckMilliSecTime(1)
                     .removeAllExpiredEntryTime(30000)
                     .expireQueueSize(30)
                     .build();
