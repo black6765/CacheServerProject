@@ -1,11 +1,11 @@
 # CacheServerProject
 
 ## 목적
-- 캐시의 기본 원리와 동작을 구현해보며 학습
+**- 캐시의 기본 원리와 동작을 구현해보며 학습**
   - put, get, remove 기본 연산
   - eviction, expire 등 캐시와 관련된 정책
 
-- 다중 클라이언트를 관리하기 위한 NIO 네트워크 프로그래밍 및 Java 학습
+**- 다중 클라이언트를 관리하기 위한 NIO 네트워크 프로그래밍 및 Java 학습**
   - Selector, SocketChannel 
   - Serialize-Deserialize
   - Thread, Collection Framework
@@ -80,3 +80,6 @@
 - **$HOME/Server/build/libs와 $HOME/Client/build/libs 디렉토리에 각각 서버와 클라이언트에 대한 jar 파일이 존재**
     - java -jar 명령어를 통해 실행
     - 서버를 먼저 실행 후 클라이언트를 실행
+    - 클라이언트의 요청 형식은 [Operation] [인자 1] [인자 2] 형태임
+      - ex) put key1 value1
+      - ex) get key1
