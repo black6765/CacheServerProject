@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import static com.blue.cacheserver.message.ErrorMessage.SERVER_CACHE_FULL_MSG;
 import static com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 
-
 public class Cache {
     private final int maxSize;
     private int initSize;
@@ -23,7 +22,6 @@ public class Cache {
     Map<BytesKey, CacheValue> cacheMemory = new ConcurrentHashMap<>(initSize);
     Deque<BytesKey> expireQueue = new ConcurrentLinkedDeque<>();
     Deque<BytesKey> evictionSampleQueue = new ConcurrentLinkedDeque<>();
-
 
     private Cache(Builder builder) {
         maxSize = builder.maxSize;
@@ -101,7 +99,6 @@ public class Cache {
         return expireQueueSize;
     }
 
-
     public void eviction(int extraSize) {
         System.out.println("\n[Eviction start]");
 
@@ -157,7 +154,6 @@ public class Cache {
         System.out.println(SERVER_CACHE_EVICTION_MSG);
     }
 
-
     public byte[] put(byte[] key, byte[] value, Instant timeStamp) {
         final int thisSize = key.length + value.length;
 
@@ -189,15 +185,12 @@ public class Cache {
         }
 
         if (timeStamp.isBefore(returnValue.getTimeStamp())) {
-            // Debug
-            System.out.println("Timing");
             cacheMemory.put(putKey, returnValue);
             return putValue.getValue();
         }
 
         return returnValue.getValue();
     }
-
 
     public byte[] get(byte[] key, Instant timeStamp) {
         CacheValue returnVal = cacheMemory.get(new BytesKey(key));
@@ -219,7 +212,6 @@ public class Cache {
         return returnVal.getValue();
     }
 
-
     public byte[] remove(byte[] key) {
         BytesKey removeKey = new BytesKey(key);
         CacheValue returnVal = cacheMemory.remove(removeKey);
@@ -238,9 +230,7 @@ public class Cache {
         return returnVal.getValue();
     }
 
-
     public int removeAllExpiredEntry() {
-        int removedSize = 0;
         for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : this.getCacheMemory().entrySet()) {
             BytesKey entryKey = entry.getKey();
             CacheValue entryValue = entry.getValue();
@@ -249,12 +239,9 @@ public class Cache {
                 cacheMemory.remove(entryKey);
                 expireQueue.clear();
                 curCacheMemorySize -= entryValue.getByteSize();
-                removedSize += entryValue.getByteSize();
             }
         }
 
-//        System.out.println("Remove all expired entries. " + removedSize + " bytes removed");
         return curCacheMemorySize;
     }
-
 }

@@ -8,12 +8,10 @@ import java.nio.channels.SocketChannel;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
 
-
 public class ClientConnection {
     ByteBuffer buf = ByteBuffer.allocate(512);
     SocketChannel socketChannel;
     final String DELIMITER = "\n\n";
-
 
     public void StartClient() {
         try {
@@ -49,7 +47,6 @@ public class ClientConnection {
         }
     }
 
-
     public void requestPut(String[] cmd) {
         if (cmd.length != 3) {
             System.out.println("Invalid input");
@@ -59,26 +56,21 @@ public class ClientConnection {
         socketConn(cmd);
     }
 
-
     public void requestGet(String[] cmd) {
         if (cmd.length != 2) {
             System.out.println("Invalid input");
             return;
         }
-
         socketConn(cmd);
     }
-
 
     public void requestRemove(String[] cmd) {
         if (cmd.length != 2) {
             System.out.println("Invalid input");
             return;
         }
-
         socketConn(cmd);
     }
-
 
     private void socketConn(String[] cmd) {
         try {
@@ -97,10 +89,9 @@ public class ClientConnection {
             byte[] bytes = new byte[byteCount];
             buf.get(bytes);
 
-
-
             String bytesString = new String(bytes);
             String returnVal;
+
             if ("null".equals(bytesString)) {
                 returnVal = "null";
             } else if ("Expired key".equals(bytesString)) {
@@ -117,13 +108,11 @@ public class ClientConnection {
         }
     }
 
-
     private byte[] getConcatBytes(String operaion, String key, String value) throws IOException {
         final byte[] serializedOperation = serialize(operaion);
         final byte[] serializedKey = serialize(key);
         final byte[] serializedValue = serialize(value);
 
-        // Note. 여기서 사이즈를 잘못 지정하면 배열에 남는 공간이 0으로 채워져 연산이 제대로 작동하지 않음
         byte[] concatBytes = new byte[serializedOperation.length +
                 serializedKey.length + serializedValue.length + 2 * (DELIMITER.length())];
 
@@ -146,12 +135,10 @@ public class ClientConnection {
         return concatBytes;
     }
 
-
     private byte[] getConcatBytes(String operaion, String key) throws IOException {
         byte[] serializedOperation = serialize(operaion);
         byte[] serializedKey = serialize(key);
 
-        // Note. 여기서 사이즈를 잘못 지정하면 배열에 남는 공간이 0으로 채워져 연산이 제대로 작동하지 않음
         byte[] concatBytes = new byte[serializedOperation.length +
                 serializedKey.length + DELIMITER.length()];
 
@@ -168,7 +155,6 @@ public class ClientConnection {
         return concatBytes;
     }
 
-
     private byte[] serialize(Object obj) throws IOException {
         byte[] serializedObj;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -179,12 +165,10 @@ public class ClientConnection {
         return serializedObj;
     }
 
-
     private Object deserialize(byte[] bytes) throws Exception {
         ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
         ObjectInputStream ois = new ObjectInputStream(bais);
 
         return ois.readObject();
     }
-
 }

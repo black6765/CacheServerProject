@@ -3,13 +3,11 @@ package com.blue.cacheserver.cache;
 import java.time.Instant;
 import java.util.Arrays;
 
-
 public class CacheValue {
     private final byte[] value;
     private final int byteSize;
     private Instant timeStamp;
     private boolean expired;
-
 
     public CacheValue(byte[] value, Instant instant, int byteSize) {
         this.value = Arrays.copyOf(value, value.length);
@@ -41,5 +39,4 @@ public class CacheValue {
     public void setExpired(boolean expired) {
         this.expired = expired;
     }
-
 }

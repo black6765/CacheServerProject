@@ -42,7 +42,6 @@ public class ServerService {
         return cache;
     }
 
-
     private void runServer() {
         Thread serverThread = new Thread(() -> {
             while (runThread) {
@@ -80,7 +79,6 @@ public class ServerService {
         serverThread.setName("runServerThread");
         serverThread.start();
 
-
         Runnable evictionRunnable = () -> {
             try {
                 for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : cache.getCacheMemory().entrySet()) {
@@ -112,7 +110,6 @@ public class ServerService {
                 0,
                 cache.getExpireCheckSecTime(),
                 TimeUnit.MILLISECONDS);
-
 
         Runnable removeExpiredEntryRunnable = () -> {
             try {
@@ -153,7 +150,6 @@ public class ServerService {
         }
     }
 
-
     public ServerService() {
         try {
             cache = new Cache.Builder()
@@ -181,7 +177,6 @@ public class ServerService {
         }
     }
 
-
     public void accept() {
         try {
             SocketChannel socketChannel = serverSocketChannel.accept();
@@ -200,7 +195,6 @@ public class ServerService {
             }
         }
     }
-
 
     public void receive(SelectionKey selectionKey) {
         try {
@@ -244,7 +238,6 @@ public class ServerService {
         }
     }
 
-
     private void selectOP(SocketChannel socketChannel, byte[] bytes, int[] splitIdx, String op) {
         try {
             byte[] keyBytes;
@@ -272,7 +265,6 @@ public class ServerService {
         }
     }
 
-
     public void putOperation(SocketChannel socketChannel, byte[] keyBytes, byte[] valueBytes) {
         try {
             byte[] returnVal = cache.put(keyBytes, valueBytes, Instant.now());
@@ -290,7 +282,6 @@ public class ServerService {
             e.printStackTrace();
         }
     }
-
 
     private void getOperation(SocketChannel socketChannel, byte[] keyBytes) {
         try {
@@ -310,7 +301,6 @@ public class ServerService {
             e.printStackTrace();
         }
     }
-
 
     private void removeOperation(SocketChannel socketChannel, byte[] keyBytes) {
         try {
@@ -332,12 +322,10 @@ public class ServerService {
         }
     }
 
-
     private Object deserialize(byte[] bytes) throws Exception {
         ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
         ObjectInputStream ois = new ObjectInputStream(bais);
 
         return ois.readObject();
     }
-
 }

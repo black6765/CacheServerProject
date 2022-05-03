@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 public class ServerMain {
     public static void main(String[] args) {
         ServerService serverService = new ServerService();
-
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
@@ -17,9 +16,7 @@ public class ServerMain {
                 if ("1".equals(cmd)) {
                     serverService.stopServer();
                     break;
-                }
-
-                if ("2".equals(cmd)) {
+                } else if ("2".equals(cmd)) {
                     int curCacheMemorySize = serverService.getCache().removeAllExpiredEntry();
                     System.out.println("Current cacheMemorySize is " + curCacheMemorySize);
                 }
