@@ -5,9 +5,9 @@ import java.util.Arrays;
 
 
 public class CacheValue {
-    private byte[] value;
+    private final byte[] value;
     private Instant timeStamp;
-    private int byteSize;
+    private final int byteSize;
     private boolean expired;
 
 

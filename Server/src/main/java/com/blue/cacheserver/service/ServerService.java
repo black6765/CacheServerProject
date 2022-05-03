@@ -20,6 +20,9 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.blue.cacheserver.message.ErrorMessage.*;
 import static com.blue.cacheserver.message.Message.*;
@@ -33,6 +36,8 @@ public class ServerService {
     private Cache cache;
 
     private boolean runThread = true;
+
+    private final ScheduledExecutorService scheduleService = Executors.newScheduledThreadPool(2);
 
     public Cache getCache() {
         return cache;
@@ -73,55 +78,58 @@ public class ServerService {
             }
         });
 
+        serverThread.setName("runServerThread");
         serverThread.start();
 
-        Thread evictionThread = new Thread(() -> {
-            while (runThread) {
-                try {
-                    for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : cache.getCacheMemory().entrySet()) {
-                        BytesKey entryKey = entry.getKey();
-                        CacheValue entryValue = entry.getValue();
 
-                        long elapsedTime = Instant.now().toEpochMilli() - entryValue.getTimeStamp().toEpochMilli();
+        Runnable evictionRunnable = () -> {
+            try {
+                for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : cache.getCacheMemory().entrySet()) {
+                    BytesKey entryKey = entry.getKey();
+                    CacheValue entryValue = entry.getValue();
 
-                        if (!entryValue.isExpired() && (elapsedTime >= cache.getExpireMilliSecTime())) {
-                            entryValue.setExpired(true);
+                    long elapsedTime = Instant.now().toEpochMilli() - entryValue.getTimeStamp().toEpochMilli();
 
-                            Deque<BytesKey> expiredQueue = cache.getExpireQueue();
-                            if (expiredQueue.size() >= cache.getExpireQueueSize()) {
-                                expiredQueue.pollFirst();
-                            }
+                    if (!entryValue.isExpired() && (elapsedTime >= cache.getExpireMilliSecTime())) {
+                        entryValue.setExpired(true);
 
-                            cache.getExpireQueue().offerLast(entryKey);
-                            System.out.println(cache.getExpireQueue());
+                        Deque<BytesKey> expiredQueue = cache.getExpireQueue();
+                        if (expiredQueue.size() >= cache.getExpireQueueSize()) {
+                            expiredQueue.pollFirst();
                         }
+
+                        cache.getExpireQueue().offerLast(entryKey);
+                        System.out.println(cache.getExpireQueue());
                     }
-
-                    Thread.sleep(cache.getExpireCheckSecTime());
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
                 }
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
-        });
+        };
 
-        evictionThread.start();
+        scheduleService.scheduleAtFixedRate(
+                evictionRunnable,
+                0,
+                cache.getExpireCheckSecTime(),
+                TimeUnit.MILLISECONDS);
+
+
+        Runnable removeExpiredEntryRunnable = () -> {
+            try {
+                cache.removeAllExpiredEntry();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+        };
 
         if (cache.getRemoveAllExpiredEntryTime() != 0) {
-            Thread removeAllExpiredEntryThread = new Thread(() -> {
-                while (runThread) {
-                    try {
-                        Thread.sleep(cache.getRemoveAllExpiredEntryTime());
-                        cache.removeAllExpiredEntry();
-
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            removeAllExpiredEntryThread.start();
+            scheduleService.scheduleAtFixedRate(
+                    removeExpiredEntryRunnable,
+                    5000,
+                    cache.getRemoveAllExpiredEntryTime(),
+                    TimeUnit.MILLISECONDS);
         }
     }
 
@@ -136,6 +144,7 @@ public class ServerService {
             }
 
             runThread = false;
+            scheduleService.shutdown();
 
             System.out.println(SERVER_STOP_MSG);
         } catch (Exception e) {
@@ -153,7 +162,7 @@ public class ServerService {
                     .initSize(64)
                     .expireMilliSecTime(6000)
                     .expireCheckMilliSecTime(500)
-                    .removeAllExpiredEntryTime(60000)
+                    .removeAllExpiredEntryTime(15000)
                     .expireQueueSize(10)
                     .build();
 
@@ -275,7 +284,7 @@ public class ServerService {
             } else if ("Expired key".equals(new String(returnVal))) {
                 socketChannel.write(charset.encode("Expired key"));
                 returnStr = "Expired key";
-            }else {
+            } else {
                 socketChannel.write(ByteBuffer.wrap(returnVal));
                 returnStr = new String(returnVal);
             }

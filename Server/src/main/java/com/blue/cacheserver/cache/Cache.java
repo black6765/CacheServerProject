@@ -13,13 +13,18 @@ import static com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 public class Cache {
     private final int maxSize;
     private int initSize;
-    private long expireMilliSecTime;
-    private long expireCheckSecTime;
-    private long removeAllExpiredEntryTime = 0;
-    private int expireQueueSize;
+    private final long expireMilliSecTime;
+    private final long expireCheckSecTime;
+    private final long removeAllExpiredEntryTime;
+    private final int expireQueueSize;
 
     private final int EVICTION_SAMPLE_SIZE = 5;
     private int curCacheMemorySize = 0;
+
+    Map<BytesKey, CacheValue> cacheMemory = new ConcurrentHashMap<>(initSize);
+    Deque<BytesKey> expireQueue = new ConcurrentLinkedDeque<>();
+    Deque<BytesKey> evictionSampleQueue = new ConcurrentLinkedDeque<>();
+
 
     private Cache(Builder builder) {
         maxSize = builder.maxSize;
@@ -73,10 +78,6 @@ public class Cache {
         }
     }
 
-    Map<BytesKey, CacheValue> cacheMemory = new ConcurrentHashMap<>(initSize);
-    Deque<BytesKey> expireQueue = new ConcurrentLinkedDeque<>();
-    Deque<BytesKey> evictionSampleQueue = new ConcurrentLinkedDeque<>();
-
     public long getExpireMilliSecTime() {
         return expireMilliSecTime;
     }
@@ -116,10 +117,7 @@ public class Cache {
                 int repeatNum = Math.min(EVICTION_SAMPLE_SIZE, cacheMemory.size());
                 int repeatCount = 0;
 
-                while (true) {
-                    if (repeatCount == repeatNum) {
-                        break;
-                    }
+                while (repeatCount < repeatNum) {
                     Random random = new Random();
                     BytesKey randomKey = bytesKeys.get(random.nextInt(bytesKeys.size()));
 
@@ -230,14 +228,10 @@ public class Cache {
             return null;
         }
 
-        if (expireQueue.contains(removeKey)) {
-            expireQueue.remove(removeKey);
-        }
-
+        expireQueue.remove(removeKey);
         curCacheMemorySize -= returnVal.getByteSize();
 
         if (returnVal.isExpired()) {
-            expireQueue.remove(removeKey);
             return "Expired key".getBytes(StandardCharsets.UTF_8);
         }
 
