@@ -10,7 +10,7 @@
   - Serialize-Deserialize
   - Thread, Collection Framework
 
-## 요구 사항
+## 구현
 ### 기본 연산
 - **put(key, value)**
   - 해당 key가 존재 : key에 대한 value를 업데이트하고 이전의 value를 리턴
@@ -76,6 +76,7 @@
 ### Usage
 - **프로젝트 디렉토리 구조는 CacheServerProject라는 루트 프로젝트와 그 안에 있는 Server, Client라는 두 개의 프로젝트로 구성됨**
     - 서버-클라이언트 두 개의 프로젝트를 하나의 레포지토리 구조에 저장하기 위함
+- **JDK11 필요**
 - **프로젝트 루트 디렉토리(이하 $HOME)에서 "./gradlew build" 명령어로 빌드**
 - **$HOME/Server/build/libs와 $HOME/Client/build/libs 디렉토리에 각각 서버와 클라이언트에 대한 jar 파일이 존재**
     - java -jar 명령어를 통해 실행
