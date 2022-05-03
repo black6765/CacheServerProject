@@ -26,9 +26,8 @@
     - 해당 key가 존재하지만 expired 됨 : 해당 엔트리를 삭제하고 만료된 timestamp를 리턴
 - **expired된 엔트리에 대한 연산 시 만료된 timestamp를 리턴하는 이유**
   - expire 된 key는 expire로 set 된 즉시 메모리에서 지워지지 않음
-      - memcached의 정책을 참고
   - 클라이언트에게 null을 리턴하게 되면 클라이언트는 해당 키가 없는 것인지, expire 된 것인지 알 지 못함
-      - Redis의 정책을 참고
+      - Redis, Memcached 정책 참고
 
 ### Expire
 - 모든 데이터는 저장된 순간 타임스탬프를 가지며, 지정된 시간 이후에는 expired 상태가 됨
