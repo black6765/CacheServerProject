@@ -305,7 +305,6 @@ public class ServerService {
     private void removeOperation(SocketChannel socketChannel, byte[] keyBytes) {
         try {
             byte[] returnVal = cache.remove(keyBytes);
-            String returnStr;
 
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));

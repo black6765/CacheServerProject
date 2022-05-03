@@ -181,7 +181,7 @@ public class Cache {
 
         if (returnValue.isExpired()) {
             expireQueue.remove(putKey);
-            return "Expired key".getBytes(StandardCharsets.UTF_8);
+            return returnValue.getTimeStamp().toString().getBytes(StandardCharsets.UTF_8);
         }
 
         if (timeStamp.isBefore(returnValue.getTimeStamp())) {
@@ -193,41 +193,41 @@ public class Cache {
     }
 
     public byte[] get(byte[] key, Instant timeStamp) {
-        CacheValue returnVal = cacheMemory.get(new BytesKey(key));
+        CacheValue returnValue = cacheMemory.get(new BytesKey(key));
 
-        if (returnVal == null) {
+        if (returnValue == null) {
             return null;
         }
 
-        if (returnVal.isExpired()) {
-            curCacheMemorySize -= returnVal.getByteSize();
+        if (returnValue.isExpired()) {
+            curCacheMemorySize -= returnValue.getByteSize();
             BytesKey removeKey = new BytesKey(key);
             cacheMemory.remove(removeKey);
             expireQueue.remove(removeKey);
-            return "Expired key".getBytes(StandardCharsets.UTF_8);
+            return returnValue.getTimeStamp().toString().getBytes(StandardCharsets.UTF_8);
         }
 
-        returnVal.setTimeStamp(timeStamp);
+        returnValue.setTimeStamp(timeStamp);
 
-        return returnVal.getValue();
+        return returnValue.getValue();
     }
 
     public byte[] remove(byte[] key) {
         BytesKey removeKey = new BytesKey(key);
-        CacheValue returnVal = cacheMemory.remove(removeKey);
+        CacheValue returnValue = cacheMemory.remove(removeKey);
 
-        if (returnVal == null) {
+        if (returnValue == null) {
             return null;
         }
-        curCacheMemorySize -= returnVal.getByteSize();
+        curCacheMemorySize -= returnValue.getByteSize();
 
         expireQueue.remove(removeKey);
 
-        if (returnVal.isExpired()) {
-            return "Expired key".getBytes(StandardCharsets.UTF_8);
+        if (returnValue.isExpired()) {
+            return returnValue.getTimeStamp().toString().getBytes(StandardCharsets.UTF_8);
         }
 
-        return returnVal.getValue();
+        return returnValue.getValue();
     }
 
     public int removeAllExpiredEntry() {

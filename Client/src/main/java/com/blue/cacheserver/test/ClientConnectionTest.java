@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_REQUEST_UNDEFINED_OPERATION_MSG;
 import static com.blue.cacheserver.message.ClientErrorMessage.CLIENT_START_FAILED_MSG;
@@ -120,21 +122,31 @@ public class ClientConnectionTest {
             buf.get(bytes);
 
             String bytesString = new String(bytes);
-            String returnVal;
+            String serverReturnValue;
+
             if ("null".equals(bytesString)) {
-                returnVal = "null";
-            } else if ("Expired key".equals(bytesString)) {
-                returnVal = "Expired key";
+                serverReturnValue = "null";
+            } else {
+                try {
+                    serverReturnValue = (String) deserialize(bytes);
+                } catch (StreamCorruptedException e) {
+                    serverReturnValue = getTimeStampToString(bytes);
+                }
             }
-            else {
-                returnVal = (String) deserialize(bytes);
-            }
-            System.out.println("Server return: " + returnVal);
+            System.out.println("Server return: " + serverReturnValue);
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private String getTimeStampToString(byte[] bytes) {
+        ZonedDateTime zdt = ZonedDateTime
+                .parse(new String(bytes), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX"))
+                .withZoneSameInstant(ZonedDateTime.now().getZone());
+
+        return zdt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SS z"));
     }
 
     private byte[] getConcatBytes(String operaion, String key, String value) throws IOException {

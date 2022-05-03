@@ -4,11 +4,26 @@
 - 다양한 프로그램에 사용되는 캐시의 기본 원리와 동작을 이해하고 학습하기 위함
 
 ### 요구 사항
-1. 기본 연산 지원
-    - 기본 연산에는 put(), get(), remove()가 있음
-
-2. 외부 클라이언트가 서버에 접속하고, 서버가 이에 대한 서비스를 제공
-    - 서버-클라이언트 간의 통신이 필요
+1. 기본 연산
+    - put(key, value)
+      - 해당 key가 존재 : key에 대한 value를 업데이트하고 이전의 value를 리턴
+      - 해당 key가 존재하지 않음 : null을 리
+      - 해당 key가 존재하지만 expired 됨 : key에 대한 value를 업데이트하고 "Expired key"를 리턴
+    - get(key)
+      - 해당 key가 존재 : key에 대한 value를 return하고 expire 타임스탬프를 갱신
+      - 해당 key가 존재하지 않음 : null을 리턴
+      - 해당 key가 존재하지만 expired 됨 : 해당 엔트리를 삭제하고 "Expired key"를 리턴
+    - remove(key)
+        - 해당 key가 존재 : 해당 엔트리를 삭제하고 value를 리턴
+        - 해당 key가 존재하지 않음 : null을 리턴
+        - 해당 key가 존재하지만 expired 됨 : 해당 엔트리를 삭제하고 "Expired key"를 리턴
+    - expired된 엔트리에 대한 연산 시 "Expired Key"를 리턴하는 이유
+      - 
+2. Server-Client 통신
+    - 클라이언트가 접속을 요청하면 서버가 accept하여 통신이 시작
+    - 클라이언트는 put, get, remove 연산을 할 수 있으며, 통신을 종료할 수 있음
+      - 클라이언트가 통신을 종료하거나 서버가 stopServer()를 호출할 때 까지 연결 유지
+    - 
 
 3. 다중 클라이언트 지원
     - 서버에 다수의 클라이언트가 동시에 접속할 수 있어야 함
