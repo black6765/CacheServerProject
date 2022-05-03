@@ -98,7 +98,7 @@ public class ServerService {
                         }
 
                         cache.getExpireQueue().offerLast(entryKey);
-                        System.out.println(cache.getExpireQueue());
+//                        System.out.println(cache.getExpireQueue());
                     }
                 }
             } catch (Exception e) {
@@ -159,7 +159,7 @@ public class ServerService {
             cache = new Cache.Builder()
                     .maxSize(81920)
                     .initSize(64)
-                    .expireMilliSecTime(10)
+                    .expireMilliSecTime(6000)
                     .expireCheckMilliSecTime(500)
                     .removeAllExpiredEntryTime(30000)
                     .expireQueueSize(10)
@@ -286,7 +286,8 @@ public class ServerService {
                 returnStr = "Expired key";
             } else {
                 socketChannel.write(ByteBuffer.wrap(returnVal));
-                returnStr = new String(returnVal);
+//                returnStr = new String(returnVal);
+                returnStr = (String) deserialize(returnVal);
             }
 
             System.out.println("Return to client = [" + returnStr + "]");
@@ -307,9 +308,13 @@ public class ServerService {
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));
                 returnStr = "null";
+            } else if ("Expired key".equals(new String(returnVal))) {
+                socketChannel.write(charset.encode("Expired key"));
+                returnStr = "Expired key";
             } else {
                 socketChannel.write(ByteBuffer.wrap(returnVal));
-                returnStr = new String(returnVal);
+//                returnStr = new String(returnVal);
+                returnStr = (String) deserialize(returnVal);
             }
 
             System.out.println("Return to client = [" + returnStr + "]");
@@ -331,9 +336,13 @@ public class ServerService {
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));
                 returnStr = "null";
+            } else if ("Expired key".equals(new String(returnVal))) {
+                socketChannel.write(charset.encode("Expired key"));
+                returnStr = "Expired key";
             } else {
                 socketChannel.write(ByteBuffer.wrap(returnVal));
-                returnStr = new String(returnVal);
+//                returnStr = new String(returnVal);
+                returnStr = (String) deserialize(returnVal);
             }
 
             System.out.println("Return to client = [" + returnStr + "]");

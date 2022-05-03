@@ -253,7 +253,7 @@ public class Cache {
             }
         }
 
-        System.out.println("Remove all expired entries. " + removedSize + " bytes removed");
+//        System.out.println("Remove all expired entries. " + removedSize + " bytes removed");
         return curCacheMemorySize;
     }
 
