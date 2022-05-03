@@ -1,13 +1,20 @@
 # CacheServerProject
 
 ## 목적
-- 다양한 프로그램에 사용되는 캐시의 기본 원리와 동작을 이해하고 학습하기 위함
+- 캐시의 기본 원리와 동작을 구현해보며 학습
+  - put, get, remove 기본 연산
+  - eviction, expire 등 캐시와 관련된 정책
+
+- 다중 클라이언트를 관리하기 위한 NIO 네트워크 프로그래밍 및 Java 학습
+  - Selector, SocketChannel 
+  - Serialize-Deserialize
+  - Thread, Collection Framework
 
 ## 요구 사항
 ### 기본 연산
 - **put(key, value)**
   - 해당 key가 존재 : key에 대한 value를 업데이트하고 이전의 value를 리턴
-  - 해당 key가 존재하지 않음 : null을 리
+  - 해당 key가 존재하지 않음 : null을 리턴
   - 해당 key가 존재하지만 expired 됨 : key에 대한 value를 업데이트하고 만료된 timestamp를 리턴
 - **get(key)**
   - 해당 key가 존재 : key에 대한 value를 return하고 expire 타임스탬프를 갱신
