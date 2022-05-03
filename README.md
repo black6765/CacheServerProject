@@ -1,11 +1,11 @@
 # CacheServerProject
 
 ## 목적
-**- 캐시의 기본 원리와 동작을 구현해보며 학습**
+- **캐시의 기본 원리와 동작을 구현해보며 학습**
   - put, get, remove 기본 연산
   - eviction, expire 등 캐시와 관련된 정책
 
-**- 다중 클라이언트를 관리하기 위한 NIO 네트워크 프로그래밍 및 Java 학습**
+- **다중 클라이언트를 관리하기 위한 NIO 네트워크 프로그래밍 및 Java 학습**
   - Selector, SocketChannel 
   - Serialize-Deserialize
   - Thread, Collection Framework
