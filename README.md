@@ -25,9 +25,10 @@
     - 해당 key가 존재하지 않음 : null을 리턴
     - 해당 key가 존재하지만 expired 됨 : 해당 엔트리를 삭제하고 만료된 timestamp를 리턴
 - **expired된 엔트리에 대한 연산 시 만료된 timestamp를 리턴하는 이유**
-  - expire 된 key는 expire로 set 된 즉시 메모리에서 지워지지 않음
+  - expire 된 key는 isExpired 필드가 true로 set 된 즉시 메모리에서 지워지지 않음
+    - 이러한 데이터를 삭제하는 것은 eviction 정책에 따름
   - 클라이언트에게 null을 리턴하게 되면 클라이언트는 해당 키가 없는 것인지, expire 된 것인지 알 지 못함
-      - Redis, Memcached 정책 참고
+  - Redis, Memcached의 정책을 참고
 
 ### Expire
 - 모든 데이터는 저장된 순간 타임스탬프를 가지며, 지정된 시간 이후에는 expired 상태가 됨
@@ -53,8 +54,8 @@
 - **CacheBuilder를 통해서 여러 변수를 설정함**
   - maxSize : 캐시 최대 사이즈 
   - initSize : 캐시 초기 사이즈
-  - expireMilliSecTime : expire 주기(밀리세컨드 단위) 
-  - expireCheckSecTime : expire 체크 주기(밀리세컨드 단위) 
+  - expireTime : expire 주기(밀리세컨드 단위) 
+  - expireCheckTime : expire 체크 주기(밀리세컨드 단위) 
   - removeAllExpiredEntryTime : expire 된 entry 삭제 주기. 0으로 설정시 비활성화
   - expireQueueSize : expire 된 entry가 저장되는 큐의 크기
 - **curCacheMemorySize**
@@ -67,7 +68,7 @@
     - Method 1. expiredQueue가 비어있지 않다면 큐의 맨 앞에 있는 key를 삭제
     - Method 2. expiredQueue가 비어있다면 랜덤으로 키를 샘플링하여 가장 오래된 key를 삭제
       - LRU(Least Recently Used) 알고리즘 적용
-        - Redis, Elastic Cache 등 eviction policy로 널리 사용됨
+        - Redis, ElastiCache 등 eviction policy로 널리 사용됨
         - 타임스탬프는 처음 데이터가 put 될 때 기록되고, get 연산 시 해당 시간으로 갱신됨
   - **Condition 2. removeAllExpiredEntryTime을 설정했을 시 일정 주기마다 expire 된 데이터를 모두 삭제**
     - Cache 객체를 생성할 때 CacheBuilder에서 설정한 값을 따름

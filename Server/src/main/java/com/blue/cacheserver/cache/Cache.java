@@ -12,8 +12,8 @@ import static com.blue.cacheserver.message.Message.SERVER_CACHE_EVICTION_MSG;
 public class Cache {
     private final int maxSize;
     private int initSize;
-    private final long expireMilliSecTime;
-    private final long expireCheckSecTime;
+    private final long expireTime;
+    private final long expireCheckTime;
     private final long removeAllExpiredEntryTime;
     private final int expireQueueSize;
 
@@ -26,8 +26,8 @@ public class Cache {
     private Cache(Builder builder) {
         maxSize = builder.maxSize;
         initSize = builder.initSize;
-        expireMilliSecTime = builder.expireMilliSecTime;
-        expireCheckSecTime = builder.expireCheckMilliSecTime;
+        expireTime = builder.expireTime;
+        expireCheckTime = builder.expireCheckTime;
         removeAllExpiredEntryTime = builder.removeAllExpiredEntryTime;
         expireQueueSize = builder.expireQueueSize;
     }
@@ -35,8 +35,8 @@ public class Cache {
     public static class Builder {
         private int maxSize = 128;
         private int initSize = 64;
-        private long expireMilliSecTime = 6000;
-        private long expireCheckMilliSecTime = 500;
+        private long expireTime = 6000;
+        private long expireCheckTime = 500;
         private long removeAllExpiredEntryTime = 0;
         private int expireQueueSize = 10;
 
@@ -50,13 +50,13 @@ public class Cache {
             return this;
         }
 
-        public Builder expireMilliSecTime(long val) {
-            expireMilliSecTime = val;
+        public Builder expireTime(long val) {
+            expireTime = val;
             return this;
         }
 
-        public Builder expireCheckMilliSecTime(long val) {
-            expireCheckMilliSecTime = val;
+        public Builder expireCheckTime(long val) {
+            expireCheckTime = val;
             return this;
         }
 
@@ -75,12 +75,23 @@ public class Cache {
         }
     }
 
-    public long getExpireMilliSecTime() {
-        return expireMilliSecTime;
+    public String initSettingToString() {
+        return "Cache Setting: {" +
+                "maxSize=" + maxSize +
+                ", initSize=" + initSize +
+                ", expireTime=" + expireTime +
+                ", expireCheckTime=" + expireCheckTime +
+                ", removeAllExpiredEntryTime=" + removeAllExpiredEntryTime +
+                ", expireQueueSize=" + expireQueueSize +
+                '}';
     }
 
-    public long getExpireCheckSecTime() {
-        return expireCheckSecTime;
+    public long getExpireTime() {
+        return expireTime;
+    }
+
+    public long getExpireCheckTime() {
+        return expireCheckTime;
     }
 
     public long getRemoveAllExpiredEntryTime() {

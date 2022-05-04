@@ -87,7 +87,7 @@ public class ServerService {
 
                     long elapsedTime = Instant.now().toEpochMilli() - entryValue.getTimeStamp().toEpochMilli();
 
-                    if (!entryValue.isExpired() && (elapsedTime >= cache.getExpireMilliSecTime())) {
+                    if (!entryValue.isExpired() && (elapsedTime >= cache.getExpireTime())) {
                         entryValue.setExpired(true);
                         entryValue.setExpireTimeStamp(Instant.now());
 
@@ -108,7 +108,7 @@ public class ServerService {
         scheduleService.scheduleAtFixedRate(
                 expireRunnable,
                 0,
-                cache.getExpireCheckSecTime(),
+                cache.getExpireCheckTime(),
                 TimeUnit.MILLISECONDS);
 
         Runnable removeExpiredEntryRunnable = () -> {
@@ -153,13 +153,15 @@ public class ServerService {
     public ServerService() {
         try {
             cache = new Cache.Builder()
-                    .maxSize(81920)
-                    .initSize(64)
-                    .expireMilliSecTime(6000)
-                    .expireCheckMilliSecTime(1)
+                    .maxSize(10240)
+                    .initSize(5120)
+                    .expireTime(6000)
+                    .expireCheckTime(100)
                     .removeAllExpiredEntryTime(30000)
                     .expireQueueSize(30)
                     .build();
+
+            System.out.println(cache.initSettingToString());
 
             selector = Selector.open();
 
