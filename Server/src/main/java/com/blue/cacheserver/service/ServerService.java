@@ -159,7 +159,7 @@ public class ServerService {
                     .expireTime(6000)
                     .expireCheckTime(100)
                     .removeAllExpiredEntryTime(30000)
-                    .expireQueueSize(0)
+                    .expireQueueSize(30)
                     .build();
 
             System.out.println(cache.initSettingToString());
