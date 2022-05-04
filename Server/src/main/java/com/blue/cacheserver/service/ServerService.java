@@ -7,6 +7,7 @@ import com.blue.cacheserver.message.DisconnectException;
 import com.blue.cacheserver.message.ServerException;
 
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.InetSocketAddress;
@@ -158,7 +159,7 @@ public class ServerService {
                     .expireTime(6000)
                     .expireCheckTime(100)
                     .removeAllExpiredEntryTime(30000)
-                    .expireQueueSize(30)
+                    .expireQueueSize(0)
                     .build();
 
             System.out.println(cache.initSettingToString());
@@ -202,11 +203,16 @@ public class ServerService {
         try {
             SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
             socketChannel.configureBlocking(false);
-            ByteBuffer buf = ByteBuffer.allocate(512);
+            final int BUF_CAPACITY = 1024;
+            ByteBuffer buf = ByteBuffer.allocate(BUF_CAPACITY);
             final int byteCount = socketChannel.read(buf);
 
             if (byteCount == -1) {
                 throw new DisconnectException("Close the connection");
+            }
+
+            if (byteCount >= BUF_CAPACITY) {
+                return;
             }
 
             buf.flip();
@@ -227,6 +233,14 @@ public class ServerService {
             final String operation = (String) deserialize(operationBytes);
             selectOP(socketChannel, bytesBuf, splitIdx, operation);
 
+        } catch (EOFException e) {
+            System.out.println(SERVER_EOFEXCEPTION_MSG);
+            SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+            try {
+                socketChannel.write(charset.encode(SERVER_EOFEXCEPTION_MSG));
+            } catch (IOException e1) {
+                selectionKey.cancel();
+            }
         } catch (DisconnectException e) {
             selectionKey.cancel();
             System.out.println(SERVER_CLIENT_DISCONNECT_MSG);

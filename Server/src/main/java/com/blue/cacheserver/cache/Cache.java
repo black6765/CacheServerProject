@@ -111,7 +111,7 @@ public class Cache {
     }
 
     public void eviction(int extraSize) {
-        System.out.println("\n[Eviction start]");
+        System.out.println("[Eviction start]");
 
         // 캐시 사이즈에 여유가 생길 때 까지 반복
         while (extraSize + curCacheMemorySize > maxSize) {
@@ -147,19 +147,14 @@ public class Cache {
                         oldestCacheValue = cacheValue;
                     }
                 }
-
                 cacheMemory.remove(oldestKey);
-
                 curCacheMemorySize -= oldestCacheValue.getByteSize();
-                System.out.println(curCacheMemorySize);
 
                 evictionSampleQueue.clear();
-
             } else {
                 BytesKey expiredKey = expireQueue.pollFirst();
                 curCacheMemorySize -= cacheMemory.get(expiredKey).getByteSize();
                 cacheMemory.remove(expiredKey);
-                System.out.println(expiredKey);
             }
         }
         System.out.println(SERVER_CACHE_EVICTION_MSG);

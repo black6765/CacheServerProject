@@ -127,11 +127,7 @@ public class ClientConnectionTest {
             if ("null".equals(bytesString)) {
                 serverReturnValue = "null";
             } else {
-                try {
-                    serverReturnValue = (String) deserialize(bytes);
-                } catch (StreamCorruptedException e) {
-                    serverReturnValue = getTimeStampToString(bytes);
-                }
+                serverReturnValue = getServerReturnValue(bytes);
             }
             System.out.println("Server return: " + serverReturnValue);
 
@@ -139,6 +135,23 @@ public class ClientConnectionTest {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private String getServerReturnValue(byte[] bytes) throws Exception {
+        String serverReturnValue;
+        try {
+            // Case 1. 서버의 리턴 값이 직렬화 된 byte[]
+            serverReturnValue = (String) deserialize(bytes);
+        } catch (StreamCorruptedException e) {
+            try {
+                // Case 2. 서버의 리턴 값이 직렬화 되지 않은 타임스탬프의 byte[]
+                serverReturnValue = getTimeStampToString(bytes);
+            } catch (Exception e1) {
+                // Case 3. 서버의 리턴 값이 직렬화 되지 않은 String의 byte[]
+                serverReturnValue = new String(bytes);
+            }
+        }
+        return serverReturnValue;
     }
 
     private String getTimeStampToString(byte[] bytes) {
