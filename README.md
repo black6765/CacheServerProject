@@ -62,15 +62,15 @@
   - 캐시 메모리의 사이즈로 put 연산 시 해당 값이 maxSize보다 커지면 eviction 발생
 
 ### eviction
-- **캐시 메모리에 최대 용량에 도달했을 때 메모리에서 데이터를 삭제 처리하는 이벤트**
+- **캐시 메모리가 최대 용량에 도달했을 때 메모리에서 데이터를 삭제 처리하는 이벤트**
 - ****크게 이벤트 기반과 시간 기반이 있음****
-  - **Condition 1. get 연산 시 추가될 데이터의 크기가 maxSize보다 크면 발생**
+  - **Event-Based : put 연산 시 추가될 데이터의 크기가 maxSize보다 크면 발생**
     - Method 1. expiredQueue가 비어있지 않다면 큐의 맨 앞에 있는 key를 삭제
     - Method 2. expiredQueue가 비어있다면 랜덤으로 키를 샘플링하여 가장 오래된 key를 삭제
       - LRU(Least Recently Used) 알고리즘 적용
         - Redis, ElastiCache 등 eviction policy로 널리 사용됨
         - 타임스탬프는 처음 데이터가 put 될 때 기록되고, get 연산 시 해당 시간으로 갱신됨
-  - **Condition 2. removeAllExpiredEntryTime을 설정했을 시 일정 주기마다 expire 된 데이터를 모두 삭제**
+  - **Time-Based : removeAllExpiredEntryTime을 설정했을 시 일정 주기마다 expire 된 데이터를 모두 삭제**
     - Cache 객체를 생성할 때 CacheBuilder에서 설정한 값을 따름
 
 ### Usage
