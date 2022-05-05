@@ -6,11 +6,9 @@ import com.blue.cacheserver.cache.CacheValue;
 import com.blue.cacheserver.message.DisconnectException;
 import com.blue.cacheserver.message.ServerException;
 
-import java.io.ByteArrayInputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.charset.Charset;
@@ -220,7 +218,7 @@ public class ServerService {
             byte[] bytesBuf = new byte[byteCount];
             buf.get(bytesBuf);
 
-            int[] splitIdx = new int[2];
+            int[] splitIdx = new int[3];
             int cntDelim = 0;
 
             for (int i = 0; i < bytesBuf.length; i++) {
@@ -234,14 +232,25 @@ public class ServerService {
             selectOP(socketChannel, bytesBuf, splitIdx, operation);
 
         } catch (EOFException e) {
-            System.out.println(SERVER_EOFEXCEPTION_MSG);
+            System.out.println(SERVER_RECEIVE_TOO_LARGE_DATA_MSG);
             SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
             try {
-                socketChannel.write(charset.encode(SERVER_EOFEXCEPTION_MSG));
+                socketChannel.write(charset.encode(SERVER_RECEIVE_TOO_LARGE_DATA_MSG));
+            } catch (IOException e1) {
+                selectionKey.cancel();
+            }
+        } catch (StreamCorruptedException e) {
+            System.out.println(SERVER_RECEIVE_TOO_LARGE_DATA_MSG);
+            SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+            try {
+                socketChannel.write(charset.encode(SERVER_RECEIVE_TOO_LARGE_DATA_MSG));
             } catch (IOException e1) {
                 selectionKey.cancel();
             }
         } catch (DisconnectException e) {
+            selectionKey.cancel();
+            System.out.println(SERVER_CLIENT_DISCONNECT_MSG);
+        } catch (SocketException e) {
             selectionKey.cancel();
             System.out.println(SERVER_CLIENT_DISCONNECT_MSG);
         } catch (IOException e) {
@@ -258,17 +267,20 @@ public class ServerService {
         try {
             byte[] keyBytes;
             byte[] valueBytes;
+            byte[] timeStampBytes;
             final String DELIMITER = "\n\n";
 
             if ("put".equals(op)) {
                 keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), splitIdx[1]);
-                valueBytes = Arrays.copyOfRange(bytes, splitIdx[1] + DELIMITER.length(), bytes.length);
-                putOperation(socketChannel, keyBytes, valueBytes);
+                valueBytes = Arrays.copyOfRange(bytes, splitIdx[1] + DELIMITER.length(), splitIdx[2]);
+                timeStampBytes = Arrays.copyOfRange(bytes, splitIdx[2] + DELIMITER.length(), bytes.length);
+                putOperation(socketChannel, keyBytes, valueBytes, timeStampBytes);
             } else if ("get".equals(op)) {
-                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), bytes.length);
-                getOperation(socketChannel, keyBytes);
+                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), splitIdx[1]);
+                timeStampBytes = Arrays.copyOfRange(bytes, splitIdx[1] + DELIMITER.length(), bytes.length);
+                getOperation(socketChannel, keyBytes, timeStampBytes);
             } else if ("remove".equals(op)) {
-                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), bytes.length);
+                keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), splitIdx[1]);
                 removeOperation(socketChannel, keyBytes);
             } else if ("exit".equals(op)) {
                 throw new DisconnectException("Close the connection");
@@ -281,9 +293,9 @@ public class ServerService {
         }
     }
 
-    public void putOperation(SocketChannel socketChannel, byte[] keyBytes, byte[] valueBytes) {
+    public void putOperation(SocketChannel socketChannel, byte[] keyBytes, byte[] valueBytes, byte[] timeStampBytes) {
         try {
-            byte[] returnVal = cache.put(keyBytes, valueBytes, Instant.now());
+            byte[] returnVal = cache.put(keyBytes, valueBytes, (Instant) deserialize(timeStampBytes));
 
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));
@@ -299,9 +311,9 @@ public class ServerService {
         }
     }
 
-    private void getOperation(SocketChannel socketChannel, byte[] keyBytes) {
+    private void getOperation(SocketChannel socketChannel, byte[] keyBytes, byte[] timeStampBytes) {
         try {
-            byte[] returnVal = cache.get(keyBytes, Instant.now());
+            byte[] returnVal = cache.get(keyBytes, (Instant) deserialize(timeStampBytes));
 
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));

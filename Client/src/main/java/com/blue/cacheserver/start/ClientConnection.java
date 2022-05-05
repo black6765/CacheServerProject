@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -110,35 +111,24 @@ public class ClientConnection {
     private String getServerReturnValue(byte[] bytes) throws Exception {
         String serverReturnValue;
         try {
-            // Case 1. 서버의 리턴 값이 직렬화 된 byte[]
             serverReturnValue = (String) deserialize(bytes);
         } catch (StreamCorruptedException e) {
-            try {
-                // Case 2. 서버의 리턴 값이 직렬화 되지 않은 타임스탬프의 byte[]
-                serverReturnValue = getTimeStampToString(bytes);
-            } catch (Exception e1) {
-                // Case 3. 서버의 리턴 값이 직렬화 되지 않은 String의 byte[]
-                serverReturnValue = new String(bytes);
-            }
+            serverReturnValue = new String(bytes);
         }
         return serverReturnValue;
-    }
-
-    private String getTimeStampToString(byte[] bytes) {
-        ZonedDateTime zdt = ZonedDateTime
-                .parse(new String(bytes), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX"))
-                .withZoneSameInstant(ZonedDateTime.now().getZone());
-
-        return zdt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SS z"));
     }
 
     private byte[] getConcatBytes(String operaion, String key, String value) throws IOException {
         final byte[] serializedOperation = serialize(operaion);
         final byte[] serializedKey = serialize(key);
         final byte[] serializedValue = serialize(value);
+        final byte[] serializedTimeStamp = serialize(Instant.now());
 
-        byte[] concatBytes = new byte[serializedOperation.length +
-                serializedKey.length + serializedValue.length + 2 * (DELIMITER.length())];
+        byte[] concatBytes = new byte[serializedOperation.length
+                + serializedKey.length
+                + serializedValue.length
+                + serializedTimeStamp.length
+                + (3 * DELIMITER.length())];
 
         int idx = 0;
         for (byte b : serializedOperation)
@@ -156,15 +146,24 @@ public class ClientConnection {
         for (byte b : serializedValue)
             concatBytes[idx++] = b;
 
+        concatBytes[idx++] = '\n';
+        concatBytes[idx++] = '\n';
+
+        for (byte b : serializedTimeStamp)
+            concatBytes[idx++] = b;
+
         return concatBytes;
     }
 
     private byte[] getConcatBytes(String operaion, String key) throws IOException {
-        byte[] serializedOperation = serialize(operaion);
-        byte[] serializedKey = serialize(key);
+        final byte[] serializedOperation = serialize(operaion);
+        final byte[] serializedKey = serialize(key);
+        final byte[] serializedTimeStamp = serialize(Instant.now());
 
-        byte[] concatBytes = new byte[serializedOperation.length +
-                serializedKey.length + DELIMITER.length()];
+        byte[] concatBytes = new byte[serializedOperation.length
+                + serializedKey.length
+                + serializedTimeStamp.length
+                + (2 * DELIMITER.length())];
 
         int idx = 0;
         for (byte b : serializedOperation)
@@ -174,6 +173,12 @@ public class ClientConnection {
         concatBytes[idx++] = '\n';
 
         for (byte b : serializedKey)
+            concatBytes[idx++] = b;
+
+        concatBytes[idx++] = '\n';
+        concatBytes[idx++] = '\n';
+
+        for (byte b : serializedTimeStamp)
             concatBytes[idx++] = b;
 
         return concatBytes;
