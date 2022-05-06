@@ -1,5 +1,7 @@
 package com.blue.cacheserver.start;
 
+import com.blue.cacheserver.democlass.Employee;
+
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -37,6 +39,8 @@ public class ClientConnection {
                     socketChannel.close();
                     br.close();
                     break;
+                } else if ("test".equals(cmd[0])) {
+                    testSocketConn();
                 } else {
                     System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
                 }
@@ -73,7 +77,39 @@ public class ClientConnection {
         socketConn(cmd);
     }
 
-    private void socketConn(String[] cmd) {
+    private <T> void testSocketConn() {
+        try {
+            byte[] concatBytes;
+
+            Employee employee = new Employee("홍길동", 30, "MW", "010-1234-5678");
+            concatBytes = getConcatBytes("put", "1", employee);
+
+
+            socketChannel.write(ByteBuffer.wrap(concatBytes));
+            buf.clear();
+
+            int byteCount = socketChannel.read(buf);
+            buf.flip();
+            byte[] bytes = new byte[byteCount];
+            buf.get(bytes);
+
+            String bytesString = new String(bytes);
+            T serverReturnValue;
+
+            if ("null".equals(bytesString)) {
+                System.out.println("Server return: " + "null");
+            } else {
+                serverReturnValue = getServerReturnValue(bytes);
+                System.out.println("Server return: " + serverReturnValue.toString());
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private <T> void socketConn(String[] cmd) {
         try {
             byte[] concatBytes;
             if (cmd.length == 3) {
@@ -91,14 +127,14 @@ public class ClientConnection {
             buf.get(bytes);
 
             String bytesString = new String(bytes);
-            String serverReturnValue;
+            T serverReturnValue;
 
             if ("null".equals(bytesString)) {
-                serverReturnValue = "null";
+                System.out.println("Server return: " + "null");
             } else {
                 serverReturnValue = getServerReturnValue(bytes);
+                System.out.println("Server return: " + serverReturnValue);
             }
-            System.out.println("Server return: " + serverReturnValue);
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -106,17 +142,14 @@ public class ClientConnection {
         }
     }
 
-    private String getServerReturnValue(byte[] bytes) throws Exception {
-        String serverReturnValue;
-        try {
-            serverReturnValue = (String) deserialize(bytes);
-        } catch (StreamCorruptedException e) {
-            serverReturnValue = new String(bytes);
-        }
+    private <T> T getServerReturnValue(byte[] bytes) throws Exception {
+        T serverReturnValue;
+        serverReturnValue = (T) deserialize(bytes);
+
         return serverReturnValue;
     }
 
-    private byte[] getConcatBytes(String operaion, String key, String value) throws IOException {
+    private byte[] getConcatBytes(String operaion, Object key, Object value) throws IOException {
         final byte[] serializedOperation = serialize(operaion);
         final byte[] serializedKey = serialize(key);
         final byte[] serializedValue = serialize(value);
@@ -153,7 +186,7 @@ public class ClientConnection {
         return concatBytes;
     }
 
-    private byte[] getConcatBytes(String operaion, String key) throws IOException {
+    private byte[] getConcatBytes(String operaion, Object key) throws IOException {
         final byte[] serializedOperation = serialize(operaion);
         final byte[] serializedKey = serialize(key);
         final byte[] serializedTimeStamp = serialize(Instant.now());

@@ -121,9 +121,9 @@ public class ServerService {
     public ServerService() {
         try {
             cache = new Cache.Builder()
-                    .maxSize(64)
+                    .maxSize(1024)
                     .initSize(32)
-                    .expireTime(60000)
+                    .expireTime(6000)
                     .expireCheckTime(100)
                     .build();
 
@@ -202,7 +202,7 @@ public class ServerService {
             System.out.println(SERVER_RECEIVE_TOO_LARGE_DATA_MSG);
             SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
             try {
-                socketChannel.write(charset.encode(SERVER_RECEIVE_TOO_LARGE_DATA_MSG));
+                socketChannel.write(charset.encode("null"));
             } catch (IOException e1) {
                 selectionKey.cancel();
             }
@@ -210,7 +210,7 @@ public class ServerService {
             System.out.println(SERVER_RECEIVE_TOO_LARGE_DATA_MSG);
             SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
             try {
-                socketChannel.write(charset.encode(SERVER_RECEIVE_TOO_LARGE_DATA_MSG));
+                socketChannel.write(charset.encode("null"));
             } catch (IOException e1) {
                 selectionKey.cancel();
             }
