@@ -14,10 +14,7 @@ import java.nio.channels.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,10 +33,6 @@ public class ServerService {
     private boolean runThread = true;
 
     private final ScheduledExecutorService scheduleService = Executors.newScheduledThreadPool(2);
-
-    public Cache getCache() {
-        return cache;
-    }
 
     private void runServer() {
         Thread serverThread = new Thread(() -> {
@@ -80,22 +73,15 @@ public class ServerService {
 
         Runnable expireRunnable = () -> {
             try {
+                Map<BytesKey, CacheValue> cacheMemory = cache.getCacheMemory();
                 for (ConcurrentHashMap.Entry<BytesKey, CacheValue> entry : cache.getCacheMemory().entrySet()) {
                     BytesKey entryKey = entry.getKey();
                     CacheValue entryValue = entry.getValue();
 
-                    long elapsedTime = Instant.now().toEpochMilli() - entryValue.getTimeStamp().toEpochMilli();
+                    long elapsedTime = Instant.now().toEpochMilli() - entryValue.getExpireTimeStamp().toEpochMilli();
 
-                    if (!entryValue.isExpired() && (elapsedTime >= cache.getExpireTime())) {
-                        entryValue.setExpired(true);
-                        entryValue.setExpireTimeStamp(Instant.now());
-
-                        Deque<BytesKey> expiredQueue = cache.getExpireQueue();
-                        if (expiredQueue.size() >= cache.getExpireQueueSize()) {
-                            expiredQueue.pollFirst();
-                        }
-
-                        cache.getExpireQueue().offerLast(entryKey);
+                    if (elapsedTime >= cache.getExpireTime()) {
+                        cacheMemory.remove(entryKey);
                     }
                 }
             } catch (Exception e) {
@@ -109,23 +95,6 @@ public class ServerService {
                 0,
                 cache.getExpireCheckTime(),
                 TimeUnit.MILLISECONDS);
-
-        Runnable removeExpiredEntryRunnable = () -> {
-            try {
-                cache.removeAllExpiredEntry();
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
-        };
-
-        if (cache.getRemoveAllExpiredEntryTime() != 0) {
-            scheduleService.scheduleAtFixedRate(
-                    removeExpiredEntryRunnable,
-                    5000,
-                    cache.getRemoveAllExpiredEntryTime(),
-                    TimeUnit.MILLISECONDS);
-        }
     }
 
     public void stopServer() {
@@ -152,12 +121,10 @@ public class ServerService {
     public ServerService() {
         try {
             cache = new Cache.Builder()
-                    .maxSize(10240)
-                    .initSize(5120)
-                    .expireTime(6000)
+                    .maxSize(64)
+                    .initSize(32)
+                    .expireTime(60000)
                     .expireCheckTime(100)
-                    .removeAllExpiredEntryTime(30000)
-                    .expireQueueSize(30)
                     .build();
 
             System.out.println(cache.initSettingToString());

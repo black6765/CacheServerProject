@@ -16,9 +16,6 @@ public class ServerMain {
                 if ("1".equals(cmd)) {
                     serverService.stopServer();
                     break;
-                } else if ("2".equals(cmd)) {
-                    int curCacheMemorySize = serverService.getCache().removeAllExpiredEntry();
-                    System.out.println("Current cacheMemorySize is " + curCacheMemorySize);
                 }
 
             } catch (IOException e) {
