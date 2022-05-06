@@ -32,7 +32,7 @@ public class ServerService {
 
     private boolean runThread = true;
 
-    private final ScheduledExecutorService scheduleService = Executors.newScheduledThreadPool(2);
+    private final ScheduledExecutorService scheduleService = Executors.newSingleThreadScheduledExecutor();
 
     private void runServer() {
         Thread serverThread = new Thread(() -> {
