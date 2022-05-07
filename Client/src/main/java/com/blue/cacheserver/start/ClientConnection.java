@@ -25,7 +25,7 @@ public class ClientConnection {
             socketChannel.connect(new InetSocketAddress("localhost", 44001));
 
             while (true) {
-                System.out.println("Select operation: put, get, remove, exit");
+                System.out.println("\nSelect operation: put, get, remove, exit");
                 String[] cmd = br.readLine().split(" ");
 
                 if ("put".equals(cmd[0])) {
