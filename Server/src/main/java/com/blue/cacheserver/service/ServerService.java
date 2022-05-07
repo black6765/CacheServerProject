@@ -81,6 +81,7 @@ public class ServerService {
                     long elapsedTime = Instant.now().toEpochMilli() - entryValue.getExpireTimeStamp().toEpochMilli();
 
                     if (elapsedTime >= cache.getExpireTime()) {
+                        cache.setCurCacheMemorySize(cache.getCurCacheMemorySize() - entryValue.getByteSize());
                         cacheMemory.remove(entryKey);
                     }
                 }
@@ -124,7 +125,7 @@ public class ServerService {
                     .maxSize(1024)
                     .initSize(32)
                     .expireTime(6000)
-                    .expireCheckTime(100)
+                    .expireCheckTime(100000)
                     .build();
 
             System.out.println(cache.initSettingToString());

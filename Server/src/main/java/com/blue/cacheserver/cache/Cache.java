@@ -66,6 +66,14 @@ public class Cache {
                 '}';
     }
 
+    public int getCurCacheMemorySize() {
+        return curCacheMemorySize;
+    }
+
+    public void setCurCacheMemorySize(int curCacheMemorySize) {
+        this.curCacheMemorySize = curCacheMemorySize;
+    }
+
     public long getExpireTime() {
         return expireTime;
     }
@@ -145,6 +153,12 @@ public class Cache {
         // 새로 갱신된 value의 크기를 더하고, 이전 value의 크기를 뺌
         curCacheMemorySize = curCacheMemorySize + putValue.getByteSize() - returnValue.getByteSize();
 
+        // expireTime이 지났으나 체크 시간이 되지 않아 삭제되지 않은 키에 접근할 때
+        long elapsedTime = Instant.now().toEpochMilli() - returnValue.getExpireTimeStamp().toEpochMilli();
+        if (elapsedTime >= expireTime) {
+            return null;
+        }
+
         if (timeStamp.isBefore(returnValue.getTimeStamp())) {
             cacheMemory.put(putKey, returnValue);
             return putValue.getValue();
@@ -154,27 +168,43 @@ public class Cache {
     }
 
     public byte[] get(byte[] key, Instant timeStamp) {
-        CacheValue returnValue = cacheMemory.get(new BytesKey(key));
+        BytesKey getKey = new BytesKey(key);
+        CacheValue getValue = cacheMemory.get(getKey);
 
-        if (returnValue == null) {
+        if (getValue == null) {
             return null;
         }
 
-        returnValue.setTimeStamp(timeStamp);
+        // expireTime이 지났으나 체크 시간이 되지 않아 삭제되지 않은 키에 접근할 때
+        long elapsedTime = Instant.now().toEpochMilli() - getValue.getExpireTimeStamp().toEpochMilli();
+        if (elapsedTime >= expireTime) {
+            curCacheMemorySize -= getValue.getByteSize();
+            cacheMemory.remove(getKey);
+            return null;
+        }
 
-        return returnValue.getValue();
+        // LRU(Eviction)에 사용되는 타임스탬프 갱신
+        getValue.setTimeStamp(timeStamp);
+
+        return getValue.getValue();
     }
 
     public byte[] remove(byte[] key) {
         BytesKey removeKey = new BytesKey(key);
-        CacheValue returnValue = cacheMemory.remove(removeKey);
+        CacheValue removeValue = cacheMemory.remove(removeKey);
 
-        if (returnValue == null) {
+        if (removeValue == null) {
             return null;
         }
-        curCacheMemorySize -= returnValue.getByteSize();
+        curCacheMemorySize -= removeValue.getByteSize();
 
-        return returnValue.getValue();
+        // expireTime이 지났으나 체크 시간이 되지 않아 삭제되지 않은 키에 접근할 때
+        long elapsedTime = Instant.now().toEpochMilli() - removeValue.getExpireTimeStamp().toEpochMilli();
+        if (elapsedTime >= expireTime) {
+            return null;
+        }
+
+        return removeValue.getValue();
     }
 
 }
