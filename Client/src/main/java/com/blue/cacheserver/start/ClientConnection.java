@@ -81,7 +81,7 @@ public class ClientConnection {
         try {
             byte[] concatBytes;
 
-            Employee employee = new Employee("홍길동", 30, "MW", "010-1234-5678");
+            Employee employee = new Employee("James", 30, "MW", "010-1234-5678");
             concatBytes = getConcatBytes("put", cmd[1], employee);
 
 

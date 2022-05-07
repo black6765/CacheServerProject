@@ -122,8 +122,8 @@ public class ServerService {
     public ServerService() {
         try {
             cache = new Cache.Builder()
-                    .maxSize(64)
-                    .initSize(32)
+                    .maxSize(1024)
+                    .initSize(512)
                     .expireTime(8000)
                     .expireCheckTime(100)
                     .build();
