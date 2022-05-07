@@ -89,7 +89,6 @@ public class ClientConnection {
             buf.clear();
 
             int byteCount = socketChannel.read(buf);
-            System.out.println("byteCount = " + byteCount);
             buf.flip();
             byte[] bytes = new byte[byteCount];
             buf.get(bytes);
