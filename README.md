@@ -13,30 +13,39 @@
 ## 구현
 ### 기본 연산
 - **put(key, value)**
-  - 해당 key가 존재 : key에 대한 value를 업데이트하고 이전의 value를 리턴
+  - 해당 key가 존재 : key에 대한 value를 업데이트하고 이전의 value 리턴
   - 해당 key가 존재하지 않음 : null을 리턴
-  - 해당 key가 존재하지만 expired 됨 : key에 대한 value를 업데이트하고 만료된 timestamp를 리턴
+  - 해당 key가 존재하지만 expired 됨 : key에 대한 value를 업데이트하고 null 리턴
 - **get(key)**
-  - 해당 key가 존재 : key에 대한 value를 return하고 expire 타임스탬프를 갱신
-  - 해당 key가 존재하지 않음 : null을 리턴
-  - 해당 key가 존재하지만 expired 됨 : 해당 엔트리를 삭제하고 만료된 timestamp를 리턴
+  - 해당 key가 존재 : key에 대한 value를 return하고 LRU에 대한 타임스탬프를 갱신(expire 타임스탬프는 그대로)
+  - 해당 key가 존재하지 않음 : null 리턴
+  - 해당 key가 존재하지만 expired 됨 : 해당 엔트리를 삭제하고 null 리턴
 - **remove(key)**
-    - 해당 key가 존재 : 해당 엔트리를 삭제하고 value를 리턴
-    - 해당 key가 존재하지 않음 : null을 리턴
-    - 해당 key가 존재하지만 expired 됨 : 해당 엔트리를 삭제하고 만료된 timestamp를 리턴
-- **expired된 엔트리에 대한 연산 시 만료된 timestamp를 리턴하는 이유**
-  - expire 된 key는 isExpired 필드가 true로 set 된 즉시 메모리에서 지워지지 않음
-    - 이러한 데이터를 삭제하는 것은 eviction 정책에 따름
-  - 클라이언트에게 null을 리턴하게 되면 클라이언트는 해당 키가 없는 것인지, expire 된 것인지 알 지 못함
-  - Redis, Memcached의 정책을 참고
+    - 해당 key가 존재 : 해당 엔트리를 삭제하고 value 리턴
+    - 해당 key가 존재하지 않음 : null 리턴
+    - 해당 key가 존재하지만 expired 됨 : 해당 엔트리를 삭제하고 만료된 null 리턴
 
-### Expire
-- 모든 데이터는 저장된 순간 타임스탬프를 가지며, 지정된 시간 이후에는 expired 상태가 됨
-- expired 된 엔트리가 실제로 삭제되는 경우
-    - key에 대한 접근이 이루어졌을 때
-        - 이벤트 발생 시 삭제(eviction)
-    - removeAllExpiredEntryTime을 설정하였을 때
-        - 일정 주기로 삭제
+### 타임스탬프와 expire
+- 모든 데이터는 저장된 순간 타임스탬프를 가지며, 두 가지 타임스탬프가 존재함
+  1. timeStamp : LRU(Eviction)에 사용되는 타임스탬프 
+     - 처음 put 연산 시 CacheValue 필드에 생성 됨
+     - 이미 존재하는 key에 대해 put, get 연산 시 갱신 됨
+  2. expireTimeStamp : expire에 사용되는 타임스탬프 
+     - 처음 put 연산 시 CacheValue 필드에 생성 후에 불변함(final)
+     - (현재 타임스탬프 - expireTimeStamp >= expireTime)인 경우에 expired로 판단하고 데이터 삭제
+     - 이러한 판단과 삭제 동작을 수행하는 별도의 스레드를 통해 일정 주기(expireCheckTime)마다 체크함
+       - 만약 expireTime이 지났으나 아직 체크되지 않은 엔트리의 경우 연산 시에 처리됨
+
+### eviction
+- **캐시 메모리가 최대 용량에 도달했을 때 메모리에서 데이터를 삭제 처리하는 이벤트**
+- **Event-Based : put 연산 시 추가될 데이터의 크기가 maxSize보다 크면 발생**
+  - expire가 time-based의 삭제 방식이라면, eviction은 event-based로 동작
+  - cacheMemory에서 정해진 수 만큼의 키를 랜덤으로 샘플링하여 그 중 timeStamp가 가장 오래된 key를 삭제
+    - LRU(Least Recently Used) 알고리즘 적용
+      - Redis, ElastiCache 등 캐시의 eviction policy로 널리 사용됨
+    - 이때의 timeStamp는 expireTimeStamp와는 다른 타임스탬프임
+    - timeStamp는 처음 데이터가 put 될 때 기록되고 put, get 연산 시 해당 시간으로 갱신됨
+      - cf. expireTimeStamp는 expire에서 사용되며, 불변함
 
 ### Server-Client 통신
 - 클라이언트가 접속을 요청하면 서버가 accept하여 통신이 시작
@@ -45,8 +54,8 @@
 - 서버에 여러 명의 클라이언트가 동시에 접속하고, cacheMemory에 접근할 수 있음
   - NIO 네트워크, Selector 등을 이용하여 서버를 구현
 - 클라이언트는 key와 value를 직렬화하여 byte[]로 서버에 전달
-  - 서버는 이를 받아서 key는 BytesKey 클래스로 래핑하고, value는 타임스탬프, 크기, 만료 여부 등 여러 정보화 함께 CacheValue라는 클래스로 관리
-  - 클라이언트는 서버가 데이터를 어떻게 저장하는 지를 알지 못해도 되며, 서버로부터 byte[] 타입을 받아 역직렬화 함
+  - 서버는 이를 받아서 key는 BytesKey 클래스로 래핑하고, value는 타임스탬프, 크기 등 여러 정보화 함께 CacheValue라는 클래스로 관리
+  - byte[]로 직렬화 되기 때문에 객체도 주고 받을 수 있음
 
 ### Cache 클래스
 - **Cache 클래스의 ConcurrentHashMap 타입의 cacheMemory에 데이터가 저장됨**
@@ -56,22 +65,8 @@
   - initSize : 캐시 초기 사이즈
   - expireTime : expire 주기(밀리세컨드 단위) 
   - expireCheckTime : expire 체크 주기(밀리세컨드 단위) 
-  - removeAllExpiredEntryTime : expire 된 entry 삭제 주기. 0으로 설정시 비활성화
-  - expireQueueSize : expire 된 entry가 저장되는 큐의 크기
 - **curCacheMemorySize**
-  - 캐시 메모리의 사이즈로 put 연산 시 해당 값이 maxSize보다 커지면 eviction 발생
-
-### eviction
-- **캐시 메모리가 최대 용량에 도달했을 때 메모리에서 데이터를 삭제 처리하는 이벤트**
-- ****크게 이벤트 기반과 시간 기반이 있음****
-  - **Event-Based : put 연산 시 추가될 데이터의 크기가 maxSize보다 크면 발생**
-    - Method 1. expiredQueue가 비어있지 않다면 큐의 맨 앞에 있는 key를 삭제
-    - Method 2. expiredQueue가 비어있다면 랜덤으로 키를 샘플링하여 가장 오래된 key를 삭제
-      - LRU(Least Recently Used) 알고리즘 적용
-        - Redis, ElastiCache 등 eviction policy로 널리 사용됨
-        - 타임스탬프는 처음 데이터가 put 될 때 기록되고, get 연산 시 해당 시간으로 갱신됨
-  - **Time-Based : removeAllExpiredEntryTime을 설정했을 시 일정 주기마다 expire 된 데이터를 모두 삭제**
-    - Cache 객체를 생성할 때 CacheBuilder에서 설정한 값을 따름
+  - 캐시 메모리의 사이즈로 put 연산 시 maxSize보다 커지면 eviction 발생
 
 ### Usage
 - **프로젝트 디렉토리 구조는 CacheServerProject라는 루트 프로젝트와 그 안에 있는 Server, Client라는 두 개의 프로젝트로 구성됨**

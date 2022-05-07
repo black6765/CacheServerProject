@@ -39,8 +39,8 @@ public class ClientConnection {
                     socketChannel.close();
                     br.close();
                     break;
-                } else if ("test".equals(cmd[0])) {
-                    testSocketConn();
+                } else if ("objectTest".equals(cmd[0])) {
+                    testSocketConn(cmd);
                 } else {
                     System.out.println(CLIENT_REQUEST_UNDEFINED_OPERATION_MSG);
                 }
@@ -77,18 +77,19 @@ public class ClientConnection {
         socketConn(cmd);
     }
 
-    private <T> void testSocketConn() {
+    private <T> void testSocketConn(String[] cmd) {
         try {
             byte[] concatBytes;
 
             Employee employee = new Employee("홍길동", 30, "MW", "010-1234-5678");
-            concatBytes = getConcatBytes("put", "1", employee);
+            concatBytes = getConcatBytes("put", cmd[1], employee);
 
 
             socketChannel.write(ByteBuffer.wrap(concatBytes));
             buf.clear();
 
             int byteCount = socketChannel.read(buf);
+            System.out.println("byteCount = " + byteCount);
             buf.flip();
             byte[] bytes = new byte[byteCount];
             buf.get(bytes);

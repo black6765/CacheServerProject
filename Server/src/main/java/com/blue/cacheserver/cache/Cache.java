@@ -136,6 +136,7 @@ public class Cache {
             return null;
         }
 
+        // 현재 캐시메모리의 사이즈와 추가될 데이터의 사이즈가 maxSize보다 클 때 eviction
         if (curCacheMemorySize + thisSize > maxSize) {
             System.out.println(SERVER_CACHE_FULL_MSG);
             eviction(curCacheMemorySize + thisSize - maxSize);
