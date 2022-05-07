@@ -58,7 +58,7 @@ public class Cache {
     }
 
     public String initSettingToString() {
-        return "Cache Setting: {" +
+        return "{" +
                 "maxSize=" + maxSize +
                 ", initSize=" + initSize +
                 ", expireTime=" + expireTime +
