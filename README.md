@@ -13,11 +13,11 @@
 ## 구현
 ### 기본 연산
 - **put(key, value)**
-  - 해당 key가 존재 : key에 대한 value를 업데이트하고 이전의 value 리턴
+  - 해당 key가 존재 : key에 대한 value를 업데이트하고 이전의 value 리턴 후 LRU에 대한 타임스탬프 갱신
   - 해당 key가 존재하지 않음 : null을 리턴
   - 해당 key가 존재하지만 expired 됨 : key에 대한 value를 업데이트하고 null 리턴
 - **get(key)**
-  - 해당 key가 존재 : key에 대한 value를 return하고 LRU에 대한 타임스탬프를 갱신(expire 타임스탬프는 그대로)
+  - 해당 key가 존재 : key에 대한 value를 return하고 LRU에 대한 타임스탬프 갱신(expire 타임스탬프는 그대로)
   - 해당 key가 존재하지 않음 : null 리턴
   - 해당 key가 존재하지만 expired 됨 : 해당 엔트리를 삭제하고 null 리턴
 - **remove(key)**
