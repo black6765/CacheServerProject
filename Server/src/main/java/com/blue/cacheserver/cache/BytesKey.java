@@ -11,7 +11,8 @@ public final class BytesKey {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof BytesKey other) {
+        if (obj instanceof BytesKey) {
+            BytesKey other = (BytesKey) obj;
             return Arrays.equals(array, other.array);
         }
         return false;
