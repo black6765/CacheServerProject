@@ -154,7 +154,7 @@ public class Cache {
         // 새로 갱신된 value의 크기를 더하고, 이전 value의 크기를 뺌
         curCacheMemorySize = curCacheMemorySize + putValue.getByteSize() - returnValue.getByteSize();
 
-        // expireTime이 지났으나 체크 시간이 되지 않아 삭제되지 않은 키에 접근할 때
+        // expireTime이 지났으나 체크 주기가 되지 않아 아직 삭제되지 않은 키에 접근하는 경우
         long elapsedTime = Instant.now().toEpochMilli() - returnValue.getExpireTimeStamp().toEpochMilli();
         if (elapsedTime >= expireTime) {
             return null;
@@ -176,7 +176,6 @@ public class Cache {
             return null;
         }
 
-        // expireTime이 지났으나 체크 시간이 되지 않아 삭제되지 않은 키에 접근할 때
         long elapsedTime = Instant.now().toEpochMilli() - getValue.getExpireTimeStamp().toEpochMilli();
         if (elapsedTime >= expireTime) {
             curCacheMemorySize -= getValue.getByteSize();
@@ -199,7 +198,6 @@ public class Cache {
         }
         curCacheMemorySize -= removeValue.getByteSize();
 
-        // expireTime이 지났으나 체크 시간이 되지 않아 삭제되지 않은 키에 접근할 때
         long elapsedTime = Instant.now().toEpochMilli() - removeValue.getExpireTimeStamp().toEpochMilli();
         if (elapsedTime >= expireTime) {
             return null;
