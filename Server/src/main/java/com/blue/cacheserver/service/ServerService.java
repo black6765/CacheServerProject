@@ -197,7 +197,7 @@ public class ServerService {
 
             final byte[] operationBytes = Arrays.copyOfRange(bytesBuf, 0, splitIdx[0]);
             final String operation = (String) deserialize(operationBytes);
-            selectOP(socketChannel, bytesBuf, splitIdx, operation);
+            selectOperation(socketChannel, bytesBuf, splitIdx, operation);
 
         } catch (EOFException e) {
             System.out.println(SERVER_RECEIVE_TOO_LARGE_DATA_MSG);
@@ -231,26 +231,26 @@ public class ServerService {
         }
     }
 
-    private void selectOP(SocketChannel socketChannel, byte[] bytes, int[] splitIdx, String op) {
+    private void selectOperation(SocketChannel socketChannel, byte[] bytes, int[] splitIdx, String operation) {
         try {
             byte[] keyBytes;
             byte[] valueBytes;
             byte[] timeStampBytes;
             final String DELIMITER = "\n\n";
 
-            if ("put".equals(op)) {
+            if ("put".equals(operation)) {
                 keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), splitIdx[1]);
                 valueBytes = Arrays.copyOfRange(bytes, splitIdx[1] + DELIMITER.length(), splitIdx[2]);
                 timeStampBytes = Arrays.copyOfRange(bytes, splitIdx[2] + DELIMITER.length(), bytes.length);
                 putOperation(socketChannel, keyBytes, valueBytes, timeStampBytes);
-            } else if ("get".equals(op)) {
+            } else if ("get".equals(operation)) {
                 keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), splitIdx[1]);
                 timeStampBytes = Arrays.copyOfRange(bytes, splitIdx[1] + DELIMITER.length(), bytes.length);
                 getOperation(socketChannel, keyBytes, timeStampBytes);
-            } else if ("remove".equals(op)) {
+            } else if ("remove".equals(operation)) {
                 keyBytes = Arrays.copyOfRange(bytes, splitIdx[0] + DELIMITER.length(), splitIdx[1]);
                 removeOperation(socketChannel, keyBytes);
-            } else if ("exit".equals(op)) {
+            } else if ("exit".equals(operation)) {
                 throw new DisconnectException("Close the connection");
             } else {
                 throw new ServerException("Client request not supported operation");

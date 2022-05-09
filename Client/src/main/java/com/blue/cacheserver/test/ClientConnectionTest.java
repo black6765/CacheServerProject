@@ -176,8 +176,8 @@ public class ClientConnectionTest {
         return serverReturnValue;
     }
 
-    private byte[] getConcatBytes(String operaion, Object key, Object value) throws IOException {
-        final byte[] serializedOperation = serialize(operaion);
+    private byte[] getConcatBytes(String operation, Object key, Object value) throws IOException {
+        final byte[] serializedOperation = serialize(operation);
         final byte[] serializedKey = serialize(key);
         final byte[] serializedValue = serialize(value);
         final byte[] serializedTimeStamp = serialize(Instant.now());
@@ -213,8 +213,8 @@ public class ClientConnectionTest {
         return concatBytes;
     }
 
-    private byte[] getConcatBytes(String operaion, Object key) throws IOException {
-        final byte[] serializedOperation = serialize(operaion);
+    private byte[] getConcatBytes(String operation, Object key) throws IOException {
+        final byte[] serializedOperation = serialize(operation);
         final byte[] serializedKey = serialize(key);
         final byte[] serializedTimeStamp = serialize(Instant.now());
 
