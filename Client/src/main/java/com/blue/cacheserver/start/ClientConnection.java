@@ -26,7 +26,7 @@ public class ClientConnection {
 
             while (true) {
                 System.out.println("\nSelect operation: put, get, remove, exit");
-                String[] cmd = br.readLine().split(" ");
+                final String[] cmd = br.readLine().split(" ");
 
                 if ("put".equals(cmd[0])) {
                     requestPut(cmd);
@@ -93,7 +93,7 @@ public class ClientConnection {
             byte[] bytes = new byte[byteCount];
             buf.get(bytes);
 
-            String bytesString = new String(bytes);
+            final String bytesString = new String(bytes);
             T serverReturnValue;
 
             if ("null".equals(bytesString)) {
@@ -126,7 +126,7 @@ public class ClientConnection {
             byte[] bytes = new byte[byteCount];
             buf.get(bytes);
 
-            String bytesString = new String(bytes);
+            final String bytesString = new String(bytes);
             T serverReturnValue;
 
             if ("null".equals(bytesString)) {

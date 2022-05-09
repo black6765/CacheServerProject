@@ -263,7 +263,7 @@ public class ServerService {
 
     public void putOperation(SocketChannel socketChannel, byte[] keyBytes, byte[] valueBytes, byte[] timeStampBytes) {
         try {
-            byte[] returnVal = cache.put(keyBytes, valueBytes, (Instant) deserialize(timeStampBytes));
+            final byte[] returnVal = cache.put(keyBytes, valueBytes, (Instant) deserialize(timeStampBytes));
 
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));
@@ -281,7 +281,7 @@ public class ServerService {
 
     private void getOperation(SocketChannel socketChannel, byte[] keyBytes, byte[] timeStampBytes) {
         try {
-            byte[] returnVal = cache.get(keyBytes, (Instant) deserialize(timeStampBytes));
+            final byte[] returnVal = cache.get(keyBytes, (Instant) deserialize(timeStampBytes));
 
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));
@@ -300,7 +300,7 @@ public class ServerService {
 
     private void removeOperation(SocketChannel socketChannel, byte[] keyBytes) {
         try {
-            byte[] returnVal = cache.remove(keyBytes);
+            final byte[] returnVal = cache.remove(keyBytes);
 
             if (returnVal == null) {
                 socketChannel.write(charset.encode("null"));
